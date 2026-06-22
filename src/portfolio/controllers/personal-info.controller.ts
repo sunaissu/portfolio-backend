@@ -8,14 +8,19 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { Public } from '../../auth/decorators/public.decorator';
 import { PersonalInfoService } from '../services/personal-info.service';
-
+import {
+  CreatePersonalInfoDto,
+  UpdatePersonalInfoDto,
+} from '../dtos/personal-info.dto';
 @Controller('personal-info')
 export class PersonalInfoController {
   private readonly logger = new Logger(PersonalInfoController.name);
 
   constructor(private readonly service: PersonalInfoService) {}
 
+  @Public()
   @Get()
   async getAll() {
     try {
@@ -29,6 +34,7 @@ export class PersonalInfoController {
     }
   }
 
+  @Public()
   @Get('profile')
   async getPersonalInfo() {
     try {
@@ -42,8 +48,9 @@ export class PersonalInfoController {
     }
   }
 
+
   @Post()
-  async create(@Body() data: any) {
+  async create(@Body() data: CreatePersonalInfoDto) {
     try {
       return await this.service.addOrUpdate(data);
     } catch (error) {
@@ -55,8 +62,9 @@ export class PersonalInfoController {
     }
   }
 
+
   @Put()
-  async update(@Body() data: any) {
+  async update(@Body() data: UpdatePersonalInfoDto) {
     try {
       return await this.service.addOrUpdate(data);
     } catch (error) {

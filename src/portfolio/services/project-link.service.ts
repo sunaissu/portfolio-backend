@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { ProjectLinkRepository } from '../repositories/project-link.repository';
 import { ProjectLink } from '../models/project-link.model';
 import { DeepPartial } from 'typeorm';
+import {
+  CreateProjectLinkDto,
+  UpdateProjectLinkDto,
+} from '../dtos/project-link.dto';
 
 @Injectable()
 export class ProjectLinkService {
@@ -11,8 +15,14 @@ export class ProjectLinkService {
     return this.repository.findAll();
   }
 
-  async addOrUpdate(data: DeepPartial<ProjectLink> | DeepPartial<ProjectLink>[]) {
-    return this.repository.addOrUpdate(data);
+  async addOrUpdate(
+    data:
+      | CreateProjectLinkDto
+      | UpdateProjectLinkDto
+      | CreateProjectLinkDto[]
+      | UpdateProjectLinkDto[],
+  ) {
+    return this.repository.addOrUpdate(data as any);
   }
 
   async remove(id: number) {

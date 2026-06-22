@@ -5,6 +5,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
+import { Public } from '../../auth/decorators/public.decorator';
 import { PersonalInfoService } from '../services/personal-info.service';
 import { ProjectService } from '../services/project.service';
 import { SkillService } from '../services/skill.service';
@@ -20,6 +21,7 @@ export class ConfigController {
     private readonly logger = new Logger(ConfigController.name),
   ) {}
 
+  @Public()
   @Get()
   async getFrontendConfig() {
     try {

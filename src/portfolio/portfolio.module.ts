@@ -8,6 +8,9 @@ import { ExperienceRole } from './models/experience-role.model';
 import { Technology } from './models/technology.model';
 import { ProjectLink } from './models/project-link.model';
 import { SkillItem } from './models/skill-item.model';
+import { ExperienceResponsibility } from './models/experience-responsibility.model';
+import { AdminUser } from './models/admin-user.model';
+import { AdminUserProvider } from './models/admin-user-provider.model';
 
 import { PersonalInfoController } from './controllers/personal-info.controller';
 import { PersonalInfoService } from './services/personal-info.service';
@@ -33,11 +36,14 @@ import { ProjectLinkRepository } from './repositories/project-link.repository';
 import { SkillItemController } from './controllers/skill-item.controller';
 import { SkillItemService } from './services/skill-item.service';
 import { SkillItemRepository } from './repositories/skill-item.repository';
-import { ExperienceResponsibility } from './models/experience-responsibility.model';
 import { ExperienceResponsibilityController } from './controllers/experience-responsibility.controller';
 import { ExperienceResponsibilityService } from './services/experience-responsibility.service';
 import { ExperienceResponsibilityRepository } from './repositories/experience-responsibility.repository';
 import { ConfigController } from './controllers/config.controller';
+import { AdminUserService } from './services/admin-user.service';
+import { AdminUserRepository } from './repositories/admin-user.repository';
+import { AdminUserProviderService } from './services/admin-user-provider.service';
+import { AdminUserProviderRepository } from './repositories/admin-user-provider.repository';
 
 @Module({
   imports: [
@@ -51,6 +57,8 @@ import { ConfigController } from './controllers/config.controller';
       ProjectLink,
       SkillItem,
       ExperienceResponsibility,
+      AdminUser,
+      AdminUserProvider,
     ]),
   ],
   controllers: [
@@ -84,6 +92,10 @@ import { ConfigController } from './controllers/config.controller';
     SkillItemRepository,
     ExperienceResponsibilityService,
     ExperienceResponsibilityRepository,
+    AdminUserService,
+    AdminUserRepository,
+    AdminUserProviderService,
+    AdminUserProviderRepository,
   ],
   exports: [
     PersonalInfoService,
@@ -104,6 +116,10 @@ import { ConfigController } from './controllers/config.controller';
     SkillItemRepository,
     ExperienceResponsibilityService,
     ExperienceResponsibilityRepository,
+    AdminUserService,
+    AdminUserRepository,
+    AdminUserProviderService,
+    AdminUserProviderRepository,
   ],
 })
 export class PortfolioModule {}

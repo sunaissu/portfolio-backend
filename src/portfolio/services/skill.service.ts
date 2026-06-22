@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SkillRepository } from '../repositories/skill.repository';
 import { Skill } from '../models/skill.model';
 import { DeepPartial } from 'typeorm';
+import { CreateSkillDto, UpdateSkillDto } from '../dtos/skill.dto';
 
 @Injectable()
 export class SkillService {
@@ -11,8 +12,10 @@ export class SkillService {
     return this.repository.findAll();
   }
 
-  async addOrUpdate(data: DeepPartial<Skill> | DeepPartial<Skill>[]) {
-    return this.repository.addOrUpdate(data);
+  async addOrUpdate(
+    data: CreateSkillDto | UpdateSkillDto | CreateSkillDto[] | UpdateSkillDto[],
+  ) {
+    return this.repository.addOrUpdate(data as any);
   }
 
   async remove(id: number) {
