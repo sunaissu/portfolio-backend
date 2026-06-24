@@ -9,6 +9,12 @@ export class Experience {
   @Column()
   company: string;
 
+  @Column({ nullable: true })
+  location: string;
+
+  @Column({ nullable: true })
+  url: string;
+
   @Column('text')
   description: string;
 

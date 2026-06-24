@@ -17,7 +17,7 @@ import { AuthService } from './auth.service';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('jwt.secret'),
-        signOptions: { 
+        signOptions: {
           issuer: 'portfolio-backend',
           audience: 'portfolio-admin',
         },

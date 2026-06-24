@@ -3,6 +3,8 @@ import {
   Get,
   Post,
   Put,
+  Delete,
+  Param,
   Body,
   HttpException,
   HttpStatus,
@@ -14,6 +16,10 @@ import {
   CreatePersonalInfoDto,
   UpdatePersonalInfoDto,
 } from '../dtos/personal-info.dto';
+import { handleControllerError } from '../../common/utils/error.util';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UseInterceptors, UploadedFile } from '@nestjs/common';
+
 @Controller('personal-info')
 export class PersonalInfoController {
   private readonly logger = new Logger(PersonalInfoController.name);
@@ -26,10 +32,11 @@ export class PersonalInfoController {
     try {
       return await this.service.getMyPortfolioInfo();
     } catch (error) {
-      this.logger.error('Database query failed', error.stack);
-      throw new HttpException(
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
         'Failed to fetch data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -40,38 +47,86 @@ export class PersonalInfoController {
     try {
       return await this.service.getMyPortfolioInfo();
     } catch (error) {
-      this.logger.error('Database query failed', error.stack);
-      throw new HttpException(
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
         'Failed to fetch data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
+  @Public()
+  @Get('resumes')
+  async getResumes() {
+    try {
+      return await this.service.getResumes();
+    } catch (error) {
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
+        'Failed to fetch resumes',
+      );
+    }
+  }
 
   @Post()
   async create(@Body() data: CreatePersonalInfoDto) {
     try {
       return await this.service.addOrUpdate(data);
     } catch (error) {
-      this.logger.error('Database query failed', error.stack);
-      throw new HttpException(
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
         'Failed to create data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
-
 
   @Put()
   async update(@Body() data: UpdatePersonalInfoDto) {
     try {
       return await this.service.addOrUpdate(data);
     } catch (error) {
-      this.logger.error('Database query failed', error.stack);
-      throw new HttpException(
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
         'Failed to update data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('resume/upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadResume(@UploadedFile() file: Express.Multer.File) {
+    try {
+      if (!file) {
+        throw new HttpException('File not provided', HttpStatus.BAD_REQUEST);
+      }
+      return await this.service.uploadResume(file);
+    } catch (error) {
+      handleControllerError(
+        this.logger,
+        'File upload failed',
+        error,
+        'Failed to upload file',
+      );
+    }
+  }
+
+  @Delete('resumes/:id')
+  async deleteResume(@Param('id') id: string) {
+    try {
+      return await this.service.deleteResume(+id);
+    } catch (error) {
+      handleControllerError(
+        this.logger,
+        'Failed to delete resume',
+        error,
+        'Failed to delete resume',
       );
     }
   }

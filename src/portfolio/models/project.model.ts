@@ -6,8 +6,8 @@ import {
   JoinTable,
   OneToMany,
 } from 'typeorm';
-import { Technology } from './technology.model';
 import { ProjectLink } from './project-link.model';
+import { Technology } from './technology.model';
 
 @Entity()
 export class Project {
@@ -23,10 +23,16 @@ export class Project {
   @OneToMany(() => ProjectLink, (link) => link.project, { cascade: true })
   links: ProjectLink[];
 
-  @ManyToMany(() => Technology)
+  @ManyToMany(() => Technology, { cascade: true })
   @JoinTable()
   technologies: Technology[];
 
+  @Column({ nullable: true })
+  status: string;
+
   @Column({ default: false })
   isDraft: boolean;
+
+  @Column({ default: false })
+  isFeatured: boolean;
 }

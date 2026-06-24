@@ -1,7 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ProjectRepository } from '../repositories/project.repository';
-import { Project } from '../models/project.model';
-import { DeepPartial } from 'typeorm';
 import { CreateProjectDto, UpdateProjectDto } from '../dtos/project.dto';
 
 @Injectable()
@@ -19,7 +17,27 @@ export class ProjectService {
       | CreateProjectDto[]
       | UpdateProjectDto[],
   ) {
-    return this.repository.addOrUpdate(data as any);
+    if (!Array.isArray(data) && data.isFeatured) {
+      const featuredCount = await this.repository.repo.count({
+        where: { isFeatured: true },
+      });
+      if (featuredCount >= 2) {
+        let isCurrentlyFeatured = false;
+        if ('id' in data && data.id) {
+          const current = await this.repository.repo.findOne({
+            where: { id: data.id },
+          });
+          isCurrentlyFeatured = current?.isFeatured || false;
+        }
+        if (!isCurrentlyFeatured) {
+          throw new HttpException(
+            'Maximum of 2 featured projects allowed',
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+      }
+    }
+    return this.repository.addOrUpdate(data);
   }
 
   async remove(id: number) {

@@ -11,6 +11,7 @@ import { SkillItem } from './models/skill-item.model';
 import { ExperienceResponsibility } from './models/experience-responsibility.model';
 import { AdminUser } from './models/admin-user.model';
 import { AdminUserProvider } from './models/admin-user-provider.model';
+import { Resume } from './models/resume.model';
 
 import { PersonalInfoController } from './controllers/personal-info.controller';
 import { PersonalInfoService } from './services/personal-info.service';
@@ -59,6 +60,7 @@ import { AdminUserProviderRepository } from './repositories/admin-user-provider.
       ExperienceResponsibility,
       AdminUser,
       AdminUserProvider,
+      Resume,
     ]),
   ],
   controllers: [

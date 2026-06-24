@@ -1,7 +1,18 @@
-import { IsString, IsNotEmpty, IsOptional, IsEmail, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsEmail,
+  IsUrl,
+  IsNumber,
+} from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreatePersonalInfoDto {
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -29,10 +40,6 @@ export class CreatePersonalInfoDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
-
-  @IsString()
-  @IsNotEmpty()
-  description: string;
 
   @IsUrl()
   @IsOptional()

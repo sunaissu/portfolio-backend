@@ -6,8 +6,6 @@ import {
   Delete,
   Body,
   Param,
-  HttpException,
-  HttpStatus,
   Logger,
 } from '@nestjs/common';
 import { Public } from '../../auth/decorators/public.decorator';
@@ -16,6 +14,7 @@ import {
   CreateTechnologyDto,
   UpdateTechnologyDto,
 } from '../dtos/technology.dto';
+import { handleControllerError } from '../../common/utils/error.util';
 
 @Controller('technologies')
 export class TechnologyController {
@@ -29,52 +28,53 @@ export class TechnologyController {
     try {
       return await this.service.getAll();
     } catch (error) {
-      this.logger.error('Database query failed', error.stack);
-      throw new HttpException(
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
         'Failed to fetch data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
-
 
   @Post()
   async create(@Body() data: CreateTechnologyDto) {
     try {
       return await this.service.addOrUpdate(data);
     } catch (error) {
-      this.logger.error('Database query failed', error.stack);
-      throw new HttpException(
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
         'Failed to create data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
-
 
   @Put()
   async update(@Body() data: UpdateTechnologyDto) {
     try {
       return await this.service.addOrUpdate(data);
     } catch (error) {
-      this.logger.error('Database query failed', error.stack);
-      throw new HttpException(
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
         'Failed to update data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
-
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
     try {
       return await this.service.remove(+id);
     } catch (error) {
-      this.logger.error('Database query failed', error.stack);
-      throw new HttpException(
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
         'Failed to delete data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

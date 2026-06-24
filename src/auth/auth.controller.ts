@@ -35,7 +35,7 @@ export class AuthController {
     res.cookie('Refresh', refreshToken, this.authService.refreshCookieOptions);
 
     const clientUrl = this.configService.getOrThrow<string>('clientUrl');
-    res.redirect(`${clientUrl}/dashboard`);
+    res.redirect(clientUrl);
   }
 
   @Public()
@@ -60,7 +60,7 @@ export class AuthController {
   }
 
   @Post('logout')
-  async logout(@Res({ passthrough: true }) res: Response) {
+  logout(@Res({ passthrough: true }) res: Response) {
     res.clearCookie('Authentication', this.authService.accessCookieOptions);
     res.clearCookie('Refresh', this.authService.refreshCookieOptions);
     return { success: true };

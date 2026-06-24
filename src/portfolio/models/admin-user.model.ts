@@ -15,6 +15,8 @@ export class AdminUser {
   @Column({ default: true })
   isActive: boolean;
 
-  @OneToMany(() => AdminUserProvider, provider => provider.adminUser, { cascade: true })
+  @OneToMany(() => AdminUserProvider, (provider) => provider.adminUser, {
+    cascade: true,
+  })
   providers: AdminUserProvider[];
 }

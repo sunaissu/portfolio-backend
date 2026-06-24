@@ -9,6 +9,9 @@ export class ExperienceResponsibility {
   @Column('text')
   description: string;
 
+  @Column({ default: 0 })
+  order: number;
+
   @ManyToOne(() => ExperienceRole, (role) => role.responsibilities)
   role: ExperienceRole;
 }

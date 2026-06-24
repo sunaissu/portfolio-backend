@@ -1,7 +1,17 @@
-import { IsString, IsNotEmpty, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsUrl,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateProjectLinkDto {
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
   @IsString()
   @IsNotEmpty()
   type: string;

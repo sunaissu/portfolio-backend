@@ -1,24 +1,20 @@
-import {
-  Controller,
-  Get,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { Controller, Get, Logger } from '@nestjs/common';
 import { Public } from '../../auth/decorators/public.decorator';
 import { PersonalInfoService } from '../services/personal-info.service';
+import { handleControllerError } from '../../common/utils/error.util';
 import { ProjectService } from '../services/project.service';
 import { SkillService } from '../services/skill.service';
 import { ExperienceService } from '../services/experience.service';
 
 @Controller('config')
 export class ConfigController {
+  private readonly logger = new Logger(ConfigController.name);
+
   constructor(
     private readonly personalInfoService: PersonalInfoService,
     private readonly projectService: ProjectService,
     private readonly skillService: SkillService,
     private readonly experienceService: ExperienceService,
-    private readonly logger = new Logger(ConfigController.name),
   ) {}
 
   @Public()
@@ -34,10 +30,11 @@ export class ConfigController {
 
       return { profile, projects, skills, experience };
     } catch (error) {
-      this.logger.error('Database query failed', error.stack);
-      throw new HttpException(
+      handleControllerError(
+        this.logger,
+        'Database query failed',
+        error,
         'Failed to fetch frontend config',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

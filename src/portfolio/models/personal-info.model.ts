@@ -26,9 +26,6 @@ export class PersonalInfo {
   @Column()
   email: string;
 
-  @Column('text')
-  description: string;
-
   @Column({ nullable: true })
   resumeUrl: string;
 }

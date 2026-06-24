@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { SkillItemRepository } from '../repositories/skill-item.repository';
-import { SkillItem } from '../models/skill-item.model';
-import { DeepPartial } from 'typeorm';
 import { CreateSkillItemDto, UpdateSkillItemDto } from '../dtos/skill-item.dto';
 
 @Injectable()
@@ -19,7 +17,19 @@ export class SkillItemService {
       | CreateSkillItemDto[]
       | UpdateSkillItemDto[],
   ) {
-    return this.repository.addOrUpdate(data as any);
+    type InputDto = CreateSkillItemDto | UpdateSkillItemDto;
+    const processItem = (item: InputDto) => {
+      const { skillId, ...rest } = item;
+      if (skillId) {
+        return { ...rest, skill: { id: skillId } };
+      }
+      return rest;
+    };
+
+    const payload = Array.isArray(data)
+      ? data.map(processItem)
+      : processItem(data);
+    return this.repository.addOrUpdate(payload);
   }
 
   async remove(id: number) {

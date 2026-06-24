@@ -7,7 +7,7 @@ export class Skill {
   id: number;
 
   @Column()
-  domain: string;
+  category: string;
 
   @OneToMany(() => SkillItem, (item) => item.skill, { cascade: true })
   items: SkillItem[];

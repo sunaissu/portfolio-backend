@@ -7,7 +7,10 @@ import { AdminUserService } from 'src/portfolio/services/admin-user.service';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 
 @Injectable()
-export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     configService: ConfigService,
     private adminUserService: AdminUserService,
@@ -15,7 +18,7 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {
-          return request?.cookies?.Refresh;
+          return (request?.cookies?.Refresh as string) || null;
         },
       ]),
       ignoreExpiration: false,

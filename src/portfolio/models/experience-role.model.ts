@@ -16,8 +16,17 @@ export class ExperienceRole {
   @Column()
   title: string;
 
-  @Column()
+  @Column({ nullable: true })
   duration: string;
+
+  @Column({ nullable: true })
+  startDate: string;
+
+  @Column({ nullable: true })
+  endDate: string;
+
+  @Column({ default: false })
+  isCurrent: boolean;
 
   @OneToMany(() => ExperienceResponsibility, (resp) => resp.role, {
     cascade: true,

@@ -27,16 +27,26 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err, user, info) {
+  handleRequest<TUser = unknown>(
+    err: unknown,
+    user: unknown,
+    info: Error | undefined,
+  ): TUser {
     if (err || !user) {
       if (info) {
-        this.logger.warn(`Authentication failed: ${info.message || info}`);
+        this.logger.warn(
+          `Authentication failed: ${info.message || 'Unknown info'}`,
+        );
       }
       if (err) {
-        this.logger.error(`Authentication error: ${err.message || err}`);
+        const errMessage = err instanceof Error ? err.message : 'Unknown error';
+        this.logger.error(`Authentication error: ${errMessage}`);
       }
-      throw err || new UnauthorizedException(info?.message || 'Unauthorized');
+      if (err instanceof Error) {
+        throw err;
+      }
+      throw new UnauthorizedException(info?.message || 'Unauthorized');
     }
-    return user;
+    return user as TUser;
   }
 }

@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { ExperienceRepository } from '../repositories/experience.repository';
-import { Experience } from '../models/experience.model';
-import { DeepPartial } from 'typeorm';
 import {
   CreateExperienceDto,
   UpdateExperienceDto,
@@ -22,7 +20,7 @@ export class ExperienceService {
       | CreateExperienceDto[]
       | UpdateExperienceDto[],
   ) {
-    return this.repository.addOrUpdate(data as any);
+    return this.repository.addOrUpdate(data);
   }
 
   async remove(id: number) {

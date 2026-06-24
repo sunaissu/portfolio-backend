@@ -2,10 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ExperienceResponsibilityRepository } from '../repositories/experience-responsibility.repository';
 import { ExperienceResponsibility } from '../models/experience-responsibility.model';
 import { DeepPartial } from 'typeorm';
-import {
-  CreateExperienceResponsibilityDto,
-  UpdateExperienceResponsibilityDto,
-} from '../dtos/experience-responsibility.dto';
 
 @Injectable()
 export class ExperienceResponsibilityService {
@@ -22,7 +18,19 @@ export class ExperienceResponsibilityService {
       | DeepPartial<ExperienceResponsibility>
       | DeepPartial<ExperienceResponsibility>[],
   ) {
-    return this.repository.addOrUpdate(data as any);
+    const processItem = (item: DeepPartial<ExperienceResponsibility>) => {
+      const { roleId, ...rest } =
+        item as DeepPartial<ExperienceResponsibility> & { roleId?: number };
+      if (roleId) {
+        return { ...rest, role: { id: roleId } };
+      }
+      return rest;
+    };
+
+    const payload = Array.isArray(data)
+      ? data.map(processItem)
+      : processItem(data);
+    return this.repository.addOrUpdate(payload);
   }
 
   async remove(id: number) {

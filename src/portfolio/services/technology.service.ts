@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { TechnologyRepository } from '../repositories/technology.repository';
-import { Technology } from '../models/technology.model';
-import { DeepPartial } from 'typeorm';
 import {
   CreateTechnologyDto,
   UpdateTechnologyDto,
@@ -22,7 +20,7 @@ export class TechnologyService {
       | CreateTechnologyDto[]
       | UpdateTechnologyDto[],
   ) {
-    return this.repository.addOrUpdate(data as any);
+    return this.repository.addOrUpdate(data);
   }
 
   async remove(id: number) {
