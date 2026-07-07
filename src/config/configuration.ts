@@ -17,4 +17,7 @@ export default () => ({
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackUrl: process.env.GOOGLE_CALLBACK_URL,
   },
+  anthropic: {
+    apiKey: process.env.ANTHROPIC_API_KEY,
+  },
 });
