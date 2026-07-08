@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Logger,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Public } from '../auth/decorators/public.decorator';
 import { ChatService } from './chat.service';
 import { ChatRequestDto } from './dtos/chat.dto';
@@ -12,6 +19,21 @@ export class ChatController {
   @Public()
   @Post()
   async chat(@Body() dto: ChatRequestDto) {
-    return this.chatService.chat(dto);
+    try {
+      return await this.chatService.chat(dto);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      this.logger.error(
+        'Unexpected error in chat endpoint',
+        err instanceof Error ? err.stack : err,
+      );
+      throw new HttpException(
+        'An unexpected error occurred. Please try again later.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }
