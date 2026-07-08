@@ -1,16 +1,17 @@
-import {
-  Injectable,
-  Inject,
-  Logger,
-  HttpException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { PersonalInfoService } from '../portfolio/services/personal-info.service';
 import { ProjectService } from '../portfolio/services/project.service';
 import { SkillService } from '../portfolio/services/skill.service';
 import { ExperienceService } from '../portfolio/services/experience.service';
-import type { AiProvider } from './providers/ai-provider.interface';
 import { ChatRequestDto } from './dtos/chat.dto';
+import {
+  AiConfigService,
+  ResolvedAiConfig,
+} from './services/ai-config.service';
+import { AiProvider } from './providers/ai-provider.interface';
+import { GeminiProvider } from './providers/gemini.provider';
+import { AnthropicProvider } from './providers/anthropic.provider';
+import { GroqProvider } from './providers/groq.provider';
 import {
   fallbackProfile,
   fallbackProjects,
@@ -23,12 +24,30 @@ export class ChatService {
   private readonly logger = new Logger(ChatService.name);
 
   constructor(
-    @Inject('AI_PROVIDER') private readonly aiProvider: AiProvider,
+    private readonly aiConfigService: AiConfigService,
     private readonly personalInfoService: PersonalInfoService,
     private readonly projectService: ProjectService,
     private readonly skillService: SkillService,
     private readonly experienceService: ExperienceService,
   ) {}
+
+  private getProviderInstance(config: ResolvedAiConfig): AiProvider {
+    switch (config.provider) {
+      case 'gemini':
+        return new GeminiProvider(config.apiKey, config.model, config.baseUrl);
+      case 'anthropic':
+        return new AnthropicProvider(
+          config.apiKey,
+          config.model,
+          config.baseUrl,
+          config.anthropicVersion,
+        );
+      case 'groq':
+        return new GroqProvider(config.apiKey, config.model, config.baseUrl);
+      default:
+        throw new Error(`Unknown AI provider: "${config.provider}"`);
+    }
+  }
 
   async chat(dto: ChatRequestDto): Promise<{ reply: string }> {
     let profile, projects, skills, experience;
@@ -77,7 +96,10 @@ ${JSON.stringify(experience, null, 2)}
     ];
 
     try {
-      const reply = await this.aiProvider.complete({
+      const aiConfig = await this.aiConfigService.getActiveConfig();
+      const aiProvider = this.getProviderInstance(aiConfig);
+
+      const reply = await aiProvider.complete({
         systemPrompt,
         messages,
         maxTokens: 1024,
