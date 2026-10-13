@@ -25,7 +25,7 @@ export class ExperienceResponsibilityRepository {
     return this.repo.save(item);
   }
 
-  async deleteByRoleId(roleId: number) {
-    return this.repo.delete({ role: { id: roleId } });
+  async remove(id: number) {
+    return this.repo.delete(id);
   }
 }

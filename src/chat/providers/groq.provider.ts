@@ -1,3 +1,4 @@
+import { readProviderJson } from './response';
 import { Logger } from '@nestjs/common';
 import {
   AiProvider,
@@ -14,6 +15,7 @@ export class GroqProvider implements AiProvider {
   ) {}
 
   async complete(request: AiCompletionRequest): Promise<string> {
+    const isGptOss = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b'].includes(this.model);
     const messages = [
       { role: 'system' as const, content: request.systemPrompt },
       ...request.messages.map((msg) => ({
@@ -24,33 +26,38 @@ export class GroqProvider implements AiProvider {
 
     const response = await fetch(this.baseUrl, {
       method: 'POST',
+      redirect: 'error',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
         model: this.model,
-        max_tokens: request.maxTokens || 1024,
+        max_completion_tokens: isGptOss
+          ? Math.max(request.maxTokens || 1024, 4096)
+          : request.maxTokens || 1024,
+        ...(isGptOss ? { reasoning_effort: 'low', include_reasoning: false } : {}),
         messages,
       }),
+      signal: request.signal ?? AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
+      await response.body?.cancel().catch(() => undefined);
       this.logger.error(
-        `Groq API error: ${response.status} - ${errorText}`,
+        JSON.stringify({ event: 'ai_provider_error', status: response.status }),
       );
-      throw new Error('Groq API request failed');
+      throw Object.assign(new Error('Groq API request failed'), { status: response.status });
     }
 
-    const data = await response.json();
+    const data = await readProviderJson<{ choices?: Array<{ message?: { content?: unknown } }> }>(response);
     const text = data?.choices?.[0]?.message?.content;
 
-    if (!text) {
+    if (typeof text !== 'string' || !text.trim()) {
       this.logger.warn('Groq returned an empty response');
       throw new Error('Groq returned no content');
     }
 
-    return text;
+    return text.trim();
   }
 }

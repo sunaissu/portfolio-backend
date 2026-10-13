@@ -1,18 +1,26 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsInt,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateSkillItemDto {
-  @IsOptional()
-  @IsNumber()
-  id?: number;
-
   @IsString()
   @IsNotEmpty()
+  @MaxLength(200)
   name: string;
 
-  @IsNumber()
+  @IsInt()
+  @Min(1)
   @IsNotEmpty()
   skillId: number;
 }
 
-export class UpdateSkillItemDto extends PartialType(CreateSkillItemDto) {}
+export class UpdateSkillItemDto extends PartialType(CreateSkillItemDto) {
+  @IsInt()
+  @Min(1)
+  id: number;
+}

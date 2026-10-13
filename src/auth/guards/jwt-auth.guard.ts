@@ -33,19 +33,18 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     info: Error | undefined,
   ): TUser {
     if (err || !user) {
-      if (info) {
-        this.logger.warn(
-          `Authentication failed: ${info.message || 'Unknown info'}`,
-        );
-      }
-      if (err) {
-        const errMessage = err instanceof Error ? err.message : 'Unknown error';
-        this.logger.error(`Authentication error: ${errMessage}`);
-      }
-      if (err instanceof Error) {
-        throw err;
-      }
-      throw new UnauthorizedException(info?.message || 'Unauthorized');
+      this.logger.warn(
+        JSON.stringify({
+          event: 'authentication_failed',
+          failureType:
+            err instanceof Error
+              ? err.constructor.name
+              : info instanceof Error
+                ? info.constructor.name
+                : 'MissingIdentity',
+        }),
+      );
+      throw new UnauthorizedException('Authentication required');
     }
     return user as TUser;
   }

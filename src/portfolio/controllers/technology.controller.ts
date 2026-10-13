@@ -8,13 +8,13 @@ import {
   Param,
   Logger,
 } from '@nestjs/common';
-import { Public } from '../../auth/decorators/public.decorator';
 import { TechnologyService } from '../services/technology.service';
 import {
   CreateTechnologyDto,
   UpdateTechnologyDto,
 } from '../dtos/technology.dto';
 import { handleControllerError } from '../../common/utils/error.util';
+import { PositiveIntPipe } from '../../common/pipes/positive-int.pipe';
 
 @Controller('technologies')
 export class TechnologyController {
@@ -22,7 +22,6 @@ export class TechnologyController {
 
   constructor(private readonly service: TechnologyService) {}
 
-  @Public()
   @Get()
   async getAll() {
     try {
@@ -66,9 +65,9 @@ export class TechnologyController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', PositiveIntPipe) id: number) {
     try {
-      return await this.service.remove(+id);
+      return await this.service.remove(id);
     } catch (error) {
       handleControllerError(
         this.logger,

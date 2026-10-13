@@ -1,41 +1,27 @@
-import { Controller, Get, Logger } from '@nestjs/common';
+import { Controller, Get, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { Public } from '../../auth/decorators/public.decorator';
-import { PersonalInfoService } from '../services/personal-info.service';
-import { handleControllerError } from '../../common/utils/error.util';
-import { ProjectService } from '../services/project.service';
-import { SkillService } from '../services/skill.service';
-import { ExperienceService } from '../services/experience.service';
+import { PortfolioDataService } from '../services/portfolio-data.service';
 
 @Controller('config')
 export class ConfigController {
-  private readonly logger = new Logger(ConfigController.name);
-
-  constructor(
-    private readonly personalInfoService: PersonalInfoService,
-    private readonly projectService: ProjectService,
-    private readonly skillService: SkillService,
-    private readonly experienceService: ExperienceService,
-  ) {}
+  constructor(private readonly portfolioDataService: PortfolioDataService) {}
 
   @Public()
   @Get()
-  async getFrontendConfig() {
-    try {
-      const [profile, projects, skills, experience] = await Promise.all([
-        this.personalInfoService.getMyPortfolioInfo(),
-        this.projectService.getAll(),
-        this.skillService.getAll(),
-        this.experienceService.getAll(),
-      ]);
-
-      return { profile, projects, skills, experience };
-    } catch (error) {
-      handleControllerError(
-        this.logger,
-        'Database query failed',
-        error,
-        'Failed to fetch frontend config',
-      );
-    }
+  async getFrontendConfig(@Res({ passthrough: true }) response: Response) {
+    const envelope = await this.portfolioDataService.getPortfolio();
+    const cacheControl = envelope.isStale
+      ? 'public, max-age=0, s-maxage=30, stale-while-revalidate=60, stale-if-error=86400'
+      : 'public, max-age=30, s-maxage=60, stale-while-revalidate=300, stale-if-error=86400';
+    response.setHeader('Cache-Control', cacheControl);
+    response.setHeader(
+      'Last-Modified',
+      new Date(envelope.generatedAt).toUTCString(),
+    );
+    response.setHeader('Vary', 'Origin');
+    response.setHeader('X-Portfolio-Source', envelope.source);
+    response.setHeader('X-Portfolio-Schema-Version', envelope.schemaVersion);
+    return envelope;
   }
 }

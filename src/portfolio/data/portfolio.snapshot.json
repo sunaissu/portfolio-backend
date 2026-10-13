@@ -1,0 +1,240 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-07-27T00:00:00.000Z",
+  "source": "snapshot",
+  "isStale": true,
+  "sectionSources": {
+    "profile": "snapshot",
+    "projects": "snapshot",
+    "skills": "snapshot",
+    "experience": "snapshot",
+    "education": "snapshot",
+    "todo": "snapshot"
+  },
+  "data": {
+    "profile": {
+      "id": 1,
+      "name": "Brett Josef C. Galvez",
+      "location": "Cebu City, Philippines",
+      "linkedin": "https://www.linkedin.com/in/brett-galvez",
+      "portfolio": "https://github.com/sunaissu",
+      "summary": "Full Stack Developer proficient in Agile and Scrum, specializing in maintaining high-compliance, scalable applications and collaborating with cross-functional teams to deliver clean, efficient code. Most recently leveraging full-stack expertise within the health-tech industry to build secure clinical solutions that equip providers to deliver the highest standard of care.",
+      "title": "Mid-Level Application Developer",
+      "email": "galvezbrett17@gmail.com",
+      "resumeUrl": "/resume.pdf"
+    },
+    "projects": [
+      {
+        "id": 1,
+        "name": "ThynchSpace",
+        "description": "A full-stack note-taking web app with Google OAuth authentication. Uses the @sunnaissu/noteboard package for whiteboard-style notes.",
+        "links": [
+          {
+            "id": 1,
+            "type": "live",
+            "url": "https://thynchspace.bg-labs.com"
+          },
+          {
+            "id": 2,
+            "type": "github",
+            "url": "https://github.com/sunaissu/thynchspace"
+          }
+        ],
+        "technologies": [
+          { "id": 1, "name": "Next.js" },
+          { "id": 2, "name": "Express.js" },
+          { "id": 3, "name": "MongoDB" },
+          { "id": 4, "name": "Passport.js" }
+        ],
+        "status": "Active",
+        "isDraft": false,
+        "isFeatured": true
+      },
+      {
+        "id": 2,
+        "name": "@sunnaissu/noteboard",
+        "description": "An npm package for whiteboard-style note components.",
+        "links": [
+          {
+            "id": 3,
+            "type": "live",
+            "url": "https://www.npmjs.com/package/@sunaissu/noteboard"
+          },
+          {
+            "id": 4,
+            "type": "github",
+            "url": "https://github.com/sunaissu/noteboard"
+          }
+        ],
+        "technologies": [
+          { "id": 5, "name": "Node.js" },
+          { "id": 6, "name": "npm" }
+        ],
+        "status": "Active",
+        "isDraft": false,
+        "isFeatured": true
+      },
+      {
+        "id": 3,
+        "name": "Steam Discount Notifier",
+        "description": "A lambda command that sends an automatic email when a fully discounted game is detected on Steam.",
+        "links": [
+          {
+            "id": 5,
+            "type": "github",
+            "url": "https://github.com/sunaissu/steam-scripts"
+          }
+        ],
+        "technologies": [
+          { "id": 7, "name": "AWS Lambda" },
+          { "id": 8, "name": "Python" }
+        ],
+        "status": "Active",
+        "isDraft": false,
+        "isFeatured": false
+      },
+      {
+        "id": 4,
+        "name": "BRAMK",
+        "description": "Uses LLM to empower MSMEs by enabling them to automate customer support and queries based on their own datasets. Includes data gathering and metrics features to provide insights on business trends.",
+        "links": [
+          {
+            "id": 6,
+            "type": "github",
+            "url": "https://github.com/ainderew/cap-client"
+          },
+          {
+            "id": 7,
+            "type": "github",
+            "url": "https://github.com/ainderew/chatxpert-backend"
+          }
+        ],
+        "technologies": [
+          { "id": 9, "name": "React" },
+          { "id": 10, "name": "Node.js" },
+          { "id": 11, "name": "LLM/AI" }
+        ],
+        "status": "Inactive",
+        "isDraft": false,
+        "isFeatured": false
+      }
+    ],
+    "skills": [
+      {
+        "id": 1,
+        "category": "Languages",
+        "items": [
+          { "id": 1, "name": "TypeScript" },
+          { "id": 2, "name": "JavaScript" },
+          { "id": 3, "name": "PHP" }
+        ]
+      },
+      {
+        "id": 2,
+        "category": "Frontend",
+        "items": [
+          { "id": 4, "name": "React.js" },
+          { "id": 5, "name": "Next.js" },
+          { "id": 6, "name": "TailwindCSS" },
+          { "id": 7, "name": "Vue.JS" }
+        ]
+      },
+      {
+        "id": 3,
+        "category": "Backend",
+        "items": [
+          { "id": 8, "name": "Node.js" },
+          { "id": 9, "name": "Laravel" },
+          { "id": 10, "name": "Nest.js" },
+          { "id": 11, "name": "ElasticSearch" },
+          { "id": 12, "name": "RestAPI" },
+          { "id": 13, "name": "GraphQL" },
+          { "id": 14, "name": "Express.js" }
+        ]
+      },
+      {
+        "id": 4,
+        "category": "Tools & DB",
+        "items": [
+          { "id": 15, "name": "Claude" },
+          { "id": 16, "name": "Codex" },
+          { "id": 17, "name": "Git/GitHub" },
+          { "id": 18, "name": "Docker" },
+          { "id": 19, "name": "GCP" },
+          { "id": 20, "name": "AWS" },
+          { "id": 21, "name": "MySQL" },
+          { "id": 22, "name": "MongoDB" },
+          { "id": 23, "name": "Figma" }
+        ]
+      }
+    ],
+    "experience": [
+      {
+        "id": 1,
+        "company": "Theoria Medical",
+        "location": "United States",
+        "url": "https://theoriamedical.com",
+        "description": "A tech-enabled, value-based healthcare company that leverages proprietary clinical platforms and telemedicine to provide primary care for senior living communities across the US.",
+        "roles": [
+          {
+            "id": 1,
+            "title": "Mid-Level Application Developer",
+            "duration": "Jun 2025 – Present",
+            "startDate": "2025-06",
+            "endDate": null,
+            "isCurrent": true,
+            "responsibilities": [
+              { "id": 1, "description": "Optimized system architecture, reducing infrastructure up to 86%, significantly improving query performance and reducing operational costs.", "order": 0 },
+              { "id": 2, "description": "Migrated legacy monolithic components into a distributed microservices architecture to improve system scalability, fault tolerance, and long-term maintainability.", "order": 1 },
+              { "id": 3, "description": "Enforced engineering standards via code reviews, unit/integration testing, and technical documentation.", "order": 2 },
+              { "id": 4, "description": "Guided junior engineers on feature implementation, enforcing clean code practices and healthcare-grade security standards.", "order": 3 },
+              { "id": 5, "description": "Maintained secure billing, complex APIs, and clinical data modules under strict medical standards.", "order": 4 }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Full Stack Developer",
+            "duration": "Apr 2024 – May 2025",
+            "startDate": "2024-04",
+            "endDate": "2025-05",
+            "isCurrent": false,
+            "responsibilities": [
+              { "id": 6, "description": "Collaborated with cross-functional teams to translate complex business and compliance requirements into functional software specifications.", "order": 0 },
+              { "id": 7, "description": "Bolstered application stability and ensured seamless feature rollouts by implementing comprehensive end-to-end testing suites.", "order": 1 },
+              { "id": 8, "description": "Integrated backend API endpoints to support evolving core business workflow while maintaining data security and regulatory requirements.", "order": 2 }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "company": "Sun* Philippines",
+        "location": "Philippines",
+        "url": "https://sun-asterisk.com",
+        "description": "A Philippine enterprise focused on digital transformation, consumer digital services, and modern web-based solutions.",
+        "roles": [
+          {
+            "id": 3,
+            "title": "Web Developer Intern",
+            "duration": "Jan 2024 – Apr 2024",
+            "startDate": "2024-01",
+            "endDate": "2024-04",
+            "isCurrent": false,
+            "responsibilities": [
+              { "id": 9, "description": "Participated in the end-to-end software development life cycle, from UI/UX prototyping in Figma to final product presentation.", "order": 0 },
+              { "id": 10, "description": "Streamlined team development by standardizing environments and establishing CI/CD pipelines through GitHub Workflows.", "order": 1 }
+            ]
+          }
+        ]
+      }
+    ],
+    "education": [
+      {
+        "degree": "Bachelor of Science in Information Technology",
+        "institution": "Cebu Institute of Technology – University",
+        "year": "2024"
+      }
+    ],
+    "todo": []
+  }
+}

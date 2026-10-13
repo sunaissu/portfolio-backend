@@ -19,18 +19,24 @@ import {
 import { handleControllerError } from '../../common/utils/error.util';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UseInterceptors, UploadedFile } from '@nestjs/common';
+import { PositiveIntPipe } from '../../common/pipes/positive-int.pipe';
+import { PortfolioDataService } from '../services/portfolio-data.service';
 
 @Controller('personal-info')
 export class PersonalInfoController {
   private readonly logger = new Logger(PersonalInfoController.name);
 
-  constructor(private readonly service: PersonalInfoService) {}
+  constructor(
+    private readonly service: PersonalInfoService,
+    private readonly portfolioDataService: PortfolioDataService,
+  ) {}
 
   @Public()
   @Get()
   async getAll() {
     try {
-      return await this.service.getMyPortfolioInfo();
+      const portfolio = await this.portfolioDataService.getPortfolio();
+      return portfolio.data.profile;
     } catch (error) {
       handleControllerError(
         this.logger,
@@ -45,7 +51,8 @@ export class PersonalInfoController {
   @Get('profile')
   async getPersonalInfo() {
     try {
-      return await this.service.getMyPortfolioInfo();
+      const portfolio = await this.portfolioDataService.getPortfolio();
+      return portfolio.data.profile;
     } catch (error) {
       handleControllerError(
         this.logger,
@@ -56,7 +63,6 @@ export class PersonalInfoController {
     }
   }
 
-  @Public()
   @Get('resumes')
   async getResumes() {
     try {
@@ -100,7 +106,11 @@ export class PersonalInfoController {
   }
 
   @Post('resume/upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { files: 1, fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   async uploadResume(@UploadedFile() file: Express.Multer.File) {
     try {
       if (!file) {
@@ -118,9 +128,9 @@ export class PersonalInfoController {
   }
 
   @Delete('resumes/:id')
-  async deleteResume(@Param('id') id: string) {
+  async deleteResume(@Param('id', PositiveIntPipe) id: number) {
     try {
-      return await this.service.deleteResume(+id);
+      return await this.service.deleteResume(id);
     } catch (error) {
       handleControllerError(
         this.logger,

@@ -8,10 +8,10 @@ import {
   Param,
   Logger,
 } from '@nestjs/common';
-import { Public } from '../../auth/decorators/public.decorator';
 import { SkillItemService } from '../services/skill-item.service';
 import { CreateSkillItemDto, UpdateSkillItemDto } from '../dtos/skill-item.dto';
 import { handleControllerError } from '../../common/utils/error.util';
+import { PositiveIntPipe } from '../../common/pipes/positive-int.pipe';
 
 @Controller('skill-items')
 export class SkillItemController {
@@ -19,7 +19,6 @@ export class SkillItemController {
 
   constructor(private readonly service: SkillItemService) {}
 
-  @Public()
   @Get()
   async getAll() {
     try {
@@ -63,9 +62,9 @@ export class SkillItemController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', PositiveIntPipe) id: number) {
     try {
-      return await this.service.remove(+id);
+      return await this.service.remove(id);
     } catch (error) {
       handleControllerError(
         this.logger,

@@ -1,28 +1,38 @@
 import {
   IsString,
+  Validate,
+  Matches,
   IsNotEmpty,
   IsBoolean,
   IsOptional,
   ValidateNested,
   IsArray,
-  IsNumber,
+  IsInt,
+  Min,
+  MaxLength,
+  ArrayMaxSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
-import { CreateProjectLinkDto } from './project-link.dto';
-import { CreateTechnologyDto } from './technology.dto';
+import { ProjectLinkInputDto } from './project-link.dto';
+import { ProjectTechnologyDto } from './technology.dto';
+
+import { ProjectCaseStudyValidator } from './project-case-study.dto';
+import type { ProjectCaseStudy } from '../types/project-case-study';
 
 export class CreateProjectDto {
   @IsOptional()
-  @IsNumber()
-  id?: number;
+  @Validate(ProjectCaseStudyValidator)
+  caseStudy?: ProjectCaseStudy | null;
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(200)
   name: string;
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(10000)
   description: string;
 
   @IsBoolean()
@@ -35,19 +45,30 @@ export class CreateProjectDto {
 
   @IsArray()
   @IsOptional()
+  @ArrayMaxSize(100)
   @ValidateNested({ each: true })
-  @Type(() => CreateTechnologyDto)
-  technologies?: CreateTechnologyDto[];
+  @Type(() => ProjectTechnologyDto)
+  technologies?: ProjectTechnologyDto[];
 
   @IsString()
   @IsOptional()
+  @IsNotEmpty()
+  @MaxLength(80)
   status?: string;
 
   @IsArray()
   @IsOptional()
+  @ArrayMaxSize(20)
   @ValidateNested({ each: true })
-  @Type(() => CreateProjectLinkDto)
-  links?: CreateProjectLinkDto[];
+  @Type(() => ProjectLinkInputDto)
+  links?: ProjectLinkInputDto[];
 }
 
-export class UpdateProjectDto extends PartialType(CreateProjectDto) {}
+export class UpdateProjectDto extends PartialType(CreateProjectDto) {
+  @Matches(/^[a-f0-9]{64}$/)
+  revision: string;
+
+  @IsInt()
+  @Min(1)
+  id: number;
+}

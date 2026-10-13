@@ -6,6 +6,7 @@ import { ChatService } from './chat.service';
 import { PortfolioModule } from '../portfolio/portfolio.module';
 import { AiConfigService } from './services/ai-config.service';
 import { AiConfig } from './entities/ai-config.entity';
+import { ChatRateLimitGuard } from './guards/chat-rate-limit.guard';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { AiConfig } from './entities/ai-config.entity';
     TypeOrmModule.forFeature([AiConfig]),
   ],
   controllers: [ChatController],
-  providers: [ChatService, AiConfigService],
+  providers: [ChatService, AiConfigService, ChatRateLimitGuard],
   exports: [AiConfigService],
 })
 export class ChatModule {}

@@ -1,3 +1,11 @@
+import { Inquiry } from './models/inquiry.model';
+import { InquiryService } from './services/inquiry.service';
+import { InquiryRateGuard } from './services/inquiry-rate.guard';
+import { InquiryController, InquiryAdminController } from './controllers/inquiry.controller';
+import { FeedController } from './controllers/feed.controller';
+import { Publication } from './models/publication.model';
+import { PublicationService } from './services/publication.service';
+import { PublicationController } from './controllers/publication.controller';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PersonalInfo } from './models/personal-info.model';
@@ -12,6 +20,9 @@ import { ExperienceResponsibility } from './models/experience-responsibility.mod
 import { AdminUser } from './models/admin-user.model';
 import { AdminUserProvider } from './models/admin-user-provider.model';
 import { Resume } from './models/resume.model';
+import { EducationRecord } from './models/education-record.model';
+import { EducationService } from './services/education.service';
+import { EducationController } from './controllers/education.controller';
 
 import { PersonalInfoController } from './controllers/personal-info.controller';
 import { PersonalInfoService } from './services/personal-info.service';
@@ -45,6 +56,8 @@ import { AdminUserService } from './services/admin-user.service';
 import { AdminUserRepository } from './repositories/admin-user.repository';
 import { AdminUserProviderService } from './services/admin-user-provider.service';
 import { AdminUserProviderRepository } from './repositories/admin-user-provider.repository';
+import { PortfolioDataService } from './services/portfolio-data.service';
+import { AdminPortfolioController } from './controllers/admin-portfolio.controller';
 
 @Module({
   imports: [
@@ -61,9 +74,17 @@ import { AdminUserProviderRepository } from './repositories/admin-user-provider.
       AdminUser,
       AdminUserProvider,
       Resume,
+      EducationRecord,
+      Publication,
+      Inquiry,
     ]),
   ],
   controllers: [
+    EducationController,
+    PublicationController,
+    InquiryController,
+    InquiryAdminController,
+    FeedController,
     PersonalInfoController,
     ProjectController,
     SkillController,
@@ -74,8 +95,13 @@ import { AdminUserProviderRepository } from './repositories/admin-user-provider.
     SkillItemController,
     ExperienceResponsibilityController,
     ConfigController,
+    AdminPortfolioController,
   ],
   providers: [
+    EducationService,
+    PublicationService,
+    InquiryService,
+    InquiryRateGuard,
     PersonalInfoService,
     PersonalInfoRepository,
     ProjectService,
@@ -98,6 +124,7 @@ import { AdminUserProviderRepository } from './repositories/admin-user-provider.
     AdminUserRepository,
     AdminUserProviderService,
     AdminUserProviderRepository,
+    PortfolioDataService,
   ],
   exports: [
     PersonalInfoService,
@@ -122,6 +149,7 @@ import { AdminUserProviderRepository } from './repositories/admin-user-provider.
     AdminUserRepository,
     AdminUserProviderService,
     AdminUserProviderRepository,
+    PortfolioDataService,
   ],
 })
 export class PortfolioModule {}

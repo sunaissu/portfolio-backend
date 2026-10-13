@@ -26,6 +26,6 @@ export class PersonalInfo {
   @Column()
   email: string;
 
-  @Column({ nullable: true })
-  resumeUrl: string;
+  @Column({ type: 'varchar', nullable: true })
+  resumeUrl: string | null;
 }

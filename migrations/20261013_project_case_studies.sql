@@ -1,0 +1,4 @@
+BEGIN;
+ALTER TABLE project ADD COLUMN IF NOT EXISTS "caseStudy" jsonb;
+ALTER TABLE project ALTER COLUMN "isDraft" SET DEFAULT true;
+COMMIT;

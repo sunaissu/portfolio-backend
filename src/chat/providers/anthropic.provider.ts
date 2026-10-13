@@ -1,3 +1,4 @@
+import { readProviderJson } from './response';
 import { Logger } from '@nestjs/common';
 import {
   AiProvider,
@@ -22,6 +23,7 @@ export class AnthropicProvider implements AiProvider {
 
     const response = await fetch(this.baseUrl, {
       method: 'POST',
+      redirect: 'error',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': this.apiKey,
@@ -33,24 +35,25 @@ export class AnthropicProvider implements AiProvider {
         system: request.systemPrompt,
         messages,
       }),
+      signal: request.signal ?? AbortSignal.timeout(30000),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
+      await response.body?.cancel().catch(() => undefined);
       this.logger.error(
-        `Anthropic API error: ${response.status} - ${errorText}`,
+        JSON.stringify({ event: 'ai_provider_error', status: response.status }),
       );
-      throw new Error('Anthropic API request failed');
+      throw Object.assign(new Error('Anthropic API request failed'), { status: response.status });
     }
 
-    const data = await response.json();
+    const data = await readProviderJson<{ content?: Array<{ text?: unknown }> }>(response);
     const text = data?.content?.[0]?.text;
 
-    if (!text) {
+    if (typeof text !== 'string' || !text.trim()) {
       this.logger.warn('Anthropic returned an empty response');
       throw new Error('Anthropic returned no content');
     }
 
-    return text;
+    return text.trim();
   }
 }

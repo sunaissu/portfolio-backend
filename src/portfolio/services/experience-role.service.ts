@@ -37,6 +37,6 @@ export class ExperienceRoleService {
   }
 
   async remove(id: number) {
-    return this.repository.deleteByExperienceId(id);
+    return this.repository.remove(id);
   }
 }

@@ -2,8 +2,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-google-oauth20';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AdminUserService } from 'src/portfolio/services/admin-user.service';
-import { AdminUserProviderService } from 'src/portfolio/services/admin-user-provider.service';
+import { AdminUserService } from '../../portfolio/services/admin-user.service';
+import { AdminUserProviderService } from '../../portfolio/services/admin-user-provider.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -28,8 +28,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const { id, emails } = profile;
     const email = emails?.[0]?.value;
 
-    if (!email) {
-      throw new UnauthorizedException('Unauthorized. No email.');
+    if (!email || emails?.[0]?.verified !== true) {
+      throw new UnauthorizedException('Unauthorized. A verified email is required.');
     }
 
     const userProviderLink =

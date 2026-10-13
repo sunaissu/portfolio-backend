@@ -7,6 +7,7 @@ export interface AiCompletionRequest {
   systemPrompt: string;
   messages: AiMessage[];
   maxTokens?: number;
+  signal?: AbortSignal;
 }
 
 export interface AiProvider {

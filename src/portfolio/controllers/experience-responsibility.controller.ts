@@ -8,13 +8,14 @@ import {
   Param,
   Logger,
 } from '@nestjs/common';
-import { Public } from '../../auth/decorators/public.decorator';
 import { ExperienceResponsibilityService } from '../services/experience-responsibility.service';
 import {
   CreateExperienceResponsibilityDto,
+  ReorderResponsibilitiesDto,
   UpdateExperienceResponsibilityDto,
 } from '../dtos/experience-responsibility.dto';
 import { handleControllerError } from '../../common/utils/error.util';
+import { PositiveIntPipe } from '../../common/pipes/positive-int.pipe';
 
 @Controller('experience-responsibilities')
 export class ExperienceResponsibilityController {
@@ -22,7 +23,6 @@ export class ExperienceResponsibilityController {
 
   constructor(private readonly service: ExperienceResponsibilityService) {}
 
-  @Public()
   @Get()
   async getAll() {
     try {
@@ -51,6 +51,11 @@ export class ExperienceResponsibilityController {
     }
   }
 
+  @Put('order')
+  reorder(@Body() data: ReorderResponsibilitiesDto) {
+    return this.service.reorder(data);
+  }
+
   @Put()
   async update(@Body() data: UpdateExperienceResponsibilityDto) {
     try {
@@ -66,9 +71,9 @@ export class ExperienceResponsibilityController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', PositiveIntPipe) id: number) {
     try {
-      return await this.service.remove(+id);
+      return await this.service.remove(id);
     } catch (error) {
       handleControllerError(
         this.logger,

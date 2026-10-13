@@ -8,13 +8,13 @@ import {
   Param,
   Logger,
 } from '@nestjs/common';
-import { Public } from '../../auth/decorators/public.decorator';
 import { ProjectLinkService } from '../services/project-link.service';
 import {
   CreateProjectLinkDto,
   UpdateProjectLinkDto,
 } from '../dtos/project-link.dto';
 import { handleControllerError } from '../../common/utils/error.util';
+import { PositiveIntPipe } from '../../common/pipes/positive-int.pipe';
 
 @Controller('project-links')
 export class ProjectLinkController {
@@ -22,7 +22,6 @@ export class ProjectLinkController {
 
   constructor(private readonly service: ProjectLinkService) {}
 
-  @Public()
   @Get()
   async getAll() {
     try {
@@ -66,9 +65,9 @@ export class ProjectLinkController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', PositiveIntPipe) id: number) {
     try {
-      return await this.service.remove(+id);
+      return await this.service.remove(id);
     } catch (error) {
       handleControllerError(
         this.logger,

@@ -6,24 +6,31 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   Logger,
 } from '@nestjs/common';
 import { Public } from '../../auth/decorators/public.decorator';
 import { ProjectService } from '../services/project.service';
 import { CreateProjectDto, UpdateProjectDto } from '../dtos/project.dto';
 import { handleControllerError } from '../../common/utils/error.util';
+import { PositiveIntPipe } from '../../common/pipes/positive-int.pipe';
+import { PortfolioDataService } from '../services/portfolio-data.service';
 
 @Controller('projects')
 export class ProjectController {
   private readonly logger = new Logger(ProjectController.name);
 
-  constructor(private readonly service: ProjectService) {}
+  constructor(
+    private readonly service: ProjectService,
+    private readonly portfolioDataService: PortfolioDataService,
+  ) {}
 
   @Public()
   @Get()
   async getAll() {
     try {
-      return await this.service.getAll();
+      const portfolio = await this.portfolioDataService.getPortfolio();
+      return portfolio.data.projects;
     } catch (error) {
       handleControllerError(
         this.logger,
@@ -63,9 +70,9 @@ export class ProjectController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', PositiveIntPipe) id: number, @Query('revision') revision?: string) {
     try {
-      return await this.service.remove(+id);
+      return await this.service.remove(id, revision);
     } catch (error) {
       handleControllerError(
         this.logger,

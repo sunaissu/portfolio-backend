@@ -6,6 +6,7 @@ import {
   JoinTable,
   OneToMany,
 } from 'typeorm';
+import type { ProjectCaseStudy } from '../types/project-case-study';
 import { ProjectLink } from './project-link.model';
 import { Technology } from './technology.model';
 
@@ -30,7 +31,10 @@ export class Project {
   @Column({ nullable: true })
   status: string;
 
-  @Column({ default: false })
+  @Column({ type: 'jsonb', nullable: true })
+  caseStudy: ProjectCaseStudy | null;
+
+  @Column({ default: true })
   isDraft: boolean;
 
   @Column({ default: false })

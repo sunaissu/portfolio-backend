@@ -8,13 +8,13 @@ import {
   Param,
   Logger,
 } from '@nestjs/common';
-import { Public } from '../../auth/decorators/public.decorator';
 import { ExperienceRoleService } from '../services/experience-role.service';
 import {
   CreateExperienceRoleDto,
   UpdateExperienceRoleDto,
 } from '../dtos/experience-role.dto';
 import { handleControllerError } from '../../common/utils/error.util';
+import { PositiveIntPipe } from '../../common/pipes/positive-int.pipe';
 
 @Controller('experience-roles')
 export class ExperienceRoleController {
@@ -22,7 +22,6 @@ export class ExperienceRoleController {
 
   constructor(private readonly service: ExperienceRoleService) {}
 
-  @Public()
   @Get()
   async getAll() {
     try {
@@ -66,9 +65,9 @@ export class ExperienceRoleController {
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id', PositiveIntPipe) id: number) {
     try {
-      return await this.service.remove(+id);
+      return await this.service.remove(id);
     } catch (error) {
       handleControllerError(
         this.logger,

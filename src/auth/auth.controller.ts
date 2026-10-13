@@ -3,9 +3,10 @@ import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { GoogleOAuthGuard } from './guards/google.guard';
 import { AuthService } from './auth.service';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { Public } from './decorators/public.decorator';
 import type { RequestWithUser } from './interfaces/request-with-user.interface';
+import { CSRF_COOKIE_NAME, RequireCsrf } from './csrf';
 
 @Controller('auth')
 export class AuthController {
@@ -17,7 +18,25 @@ export class AuthController {
   @Public()
   @Get('google')
   @UseGuards(GoogleOAuthGuard)
-  async googleAuth() {}
+  googleAuth(): void {
+    return;
+  }
+
+  @Public()
+  @Get('csrf')
+  csrf(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const existing: unknown = req.cookies?.[CSRF_COOKIE_NAME];
+    const csrfToken = typeof existing === 'string' && /^[A-Za-z0-9_-]{43}$/.test(existing)
+      ? existing : this.authService.generateCsrfToken();
+    res.cookie(
+      CSRF_COOKIE_NAME,
+      csrfToken,
+      this.authService.csrfCookieOptions,
+    );
+    res.setHeader('Cache-Control', 'no-store');
+    res.setHeader('Pragma', 'no-cache');
+    return { csrfToken };
+  }
 
   @Public()
   @Get('google/callback')
@@ -33,12 +52,18 @@ export class AuthController {
       this.authService.accessCookieOptions,
     );
     res.cookie('Refresh', refreshToken, this.authService.refreshCookieOptions);
+    res.cookie(
+      CSRF_COOKIE_NAME,
+      this.authService.generateCsrfToken(),
+      this.authService.csrfCookieOptions,
+    );
 
     const clientUrl = this.configService.getOrThrow<string>('clientUrl');
     res.redirect(clientUrl);
   }
 
   @Public()
+  @RequireCsrf()
   @Post('refresh')
   @UseGuards(AuthGuard('jwt-refresh'))
   async refresh(
@@ -47,6 +72,7 @@ export class AuthController {
   ) {
     const { accessToken, refreshToken } = await this.authService.generateTokens(
       req.user.id,
+      req.user.refreshPayload,
     );
 
     res.cookie(
@@ -56,13 +82,24 @@ export class AuthController {
     );
     res.cookie('Refresh', refreshToken, this.authService.refreshCookieOptions);
 
-    return { success: true };
+    const csrfToken = req.cookies[CSRF_COOKIE_NAME] as string;
+    res.cookie(
+      CSRF_COOKIE_NAME,
+      csrfToken,
+      this.authService.csrfCookieOptions,
+    );
+
+    return { success: true, csrfToken };
   }
 
+  @Public()
+  @RequireCsrf()
   @Post('logout')
-  logout(@Res({ passthrough: true }) res: Response) {
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    await this.authService.revokeSession(req.cookies as Record<string, unknown>);
     res.clearCookie('Authentication', this.authService.accessCookieOptions);
     res.clearCookie('Refresh', this.authService.refreshCookieOptions);
+    res.clearCookie(CSRF_COOKIE_NAME, this.authService.csrfCookieOptions);
     return { success: true };
   }
 }
