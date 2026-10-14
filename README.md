@@ -92,3 +92,5 @@ Manual link review checks six URLs per batch, up to 120. It accepts public HTTPS
 Optional public notices have bounded plain text and inclusive UTC date windows. They become eligible to display only after the document is approved and published. Resume assets are publicly reachable immediately after upload; 20 files may be retained. Automatic pruning is disabled, and deletion is serialized with release/recovery writes and rejected for referenced files. Storage deletion itself still depends on the configured provider.
 
 Checks: npm run build, npm test -- --runInBand, npm run test:migrations, npm run test:studio. Dashboard execution is separately prohibited by that repository's AGENTS.md.
+
+Configured project status endpoints use the same public-IP restrictions as link checks, with pinned DNS, no redirects or credentials, a 16 KB JSON cap and a narrow status/version/timestamp projection. Version and snapshot downloads include schemaVersion for direct import. Individual trash entries can be explicitly purged to recover capacity; retained versions remain unchanged.
