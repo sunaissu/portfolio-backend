@@ -15,6 +15,7 @@ Before deploying the matching frontend/dashboard release, apply these SQL migrat
 5. migrations/20261013_portfolio_publication.sql
 6. migrations/20261013_portfolio_inquiries.sql
 7. migrations/20261013_backend_table_permissions.sql
+8. migrations/20261014_management_studio.sql
 
 These are additive migrations for an existing portfolio database. They do not create all legacy application tables. The backend connection must use the table owner or a dedicated server role with the required privileges and BYPASSRLS. Browser database roles anon/authenticated have no direct access to application tables, including ai_config. The public portfolio reads through the backend instead. Review other database roles and inherited privileges in the intended deployment. These migrations were tested in disposable PostgreSQL, not applied to production.
 
