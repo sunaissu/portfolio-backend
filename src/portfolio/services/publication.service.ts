@@ -51,6 +51,7 @@ export class PublicationService {
   }
   async getPublicOrNull() {
     try {
+      try {const rows=await this.repository.manager.query<Array<{content:unknown}>>("SELECT published->'content' AS content FROM portfolio_studio WHERE id=1 AND published IS NOT NULL");if(rows?.length)return normalizeContent(rows[0].content);}catch(error){const code=(error as {code?:string;driverError?:{code?:string}})?.driverError?.code||(error as {code?:string})?.code;if(code!=='42P01')throw error;}
       const value = await this.get();
       return normalizeContent(value.published);
     } catch (error) {

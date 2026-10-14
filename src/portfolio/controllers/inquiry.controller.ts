@@ -48,8 +48,11 @@ export class InquiryDto extends ReceiptDto {
   @IsOptional() @IsString() @MaxLength(100) timezone?: string;
 }
 class ChangeDto {
+  @IsOptional() @IsString() @MaxLength(4000) internalNotes?:string;
+  @IsOptional() @IsIn([true,false]) replied?:boolean;
   @IsInt() @Min(1) version: number;
-  @IsIn(['reviewed', 'confirmed', 'declined', 'closed']) status:
+  @IsIn(['received', 'reviewed', 'confirmed', 'declined', 'closed']) status:
+    | 'received'
     | 'reviewed'
     | 'confirmed'
     | 'declined'
@@ -89,7 +92,7 @@ export class InquiryAdminController {
     @Body() dto: ChangeDto,
     @Req() request: RequestWithUser,
   ) {
-    return this.service.change(id, dto.version, dto.status, request.user.id);
+    return this.service.change(id, dto.version, dto.status, request.user.id, {internalNotes:dto.internalNotes,replied:dto.replied});
   }
   @Delete(':id') async remove(
     @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,

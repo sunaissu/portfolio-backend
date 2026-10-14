@@ -21,6 +21,8 @@ export class Inquiry {
     | 'confirmed'
     | 'declined'
     | 'closed';
+  @Column('text', {default:''}) internalNotes:string;
+  @Column('timestamptz', {nullable:true}) repliedAt:Date|null;
   @Column('int', { default: 1 }) version: number;
   @Column('timestamptz') createdAt: Date;
   @Index() @Column('timestamptz') expiresAt: Date;

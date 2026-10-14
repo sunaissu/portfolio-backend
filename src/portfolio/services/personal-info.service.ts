@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PersonalInfoRepository } from '../repositories/personal-info.repository';
 import { PersonalInfo } from '../models/personal-info.model';
 import { DeepPartial } from 'typeorm';
@@ -14,7 +14,7 @@ const MAX_RESUME_SIZE_BYTES = 5 * 1024 * 1024;
 @Injectable()
 export class PersonalInfoService {
   private supabase: SupabaseClient | null = null;
-  private readonly logger = new Logger(PersonalInfoService.name);
+
 
   constructor(
     private readonly repository: PersonalInfoRepository,
@@ -89,6 +89,7 @@ export class PersonalInfoService {
 
     try {
       await this.resumeRepository.manager.transaction(async (manager) => {
+        await manager.query('SELECT pg_advisory_xact_lock(78413301)');if(await manager.getRepository(Resume).count()>=20)throw new BadRequestException('Keep at most 20 stored resumes. Remove an unused file before uploading another.');
         await manager.getRepository(Resume).save({
           filePath,
           url: urlData.publicUrl,
@@ -106,25 +107,6 @@ export class PersonalInfoService {
       throw error;
     }
 
-    try {
-      const resumes = await this.resumeRepository.find({
-        order: { createdAt: 'ASC', id: 'ASC' },
-      });
-      if (resumes.length > 3) {
-        const toDelete = resumes.slice(0, resumes.length - 3);
-        for (const oldResume of toDelete) {
-          const currentProfile = await this.getMyPortfolioInfo();
-          if (currentProfile?.resumeUrl === oldResume.url) continue;
-          const { error } = await supabase.storage
-            .from('resumes')
-            .remove([oldResume.filePath]);
-          if (error) continue;
-          await this.resumeRepository.delete(oldResume.id);
-        }
-      }
-    } catch {
-      this.logger.warn('Resume saved, but old resume cleanup could not finish');
-    }
 
     return {
       message: 'Resume uploaded successfully',
@@ -134,27 +116,22 @@ export class PersonalInfoService {
   }
 
   async deleteResume(id: number) {
-    const supabase = this.storageClient();
-    const resume = await this.resumeRepository.findOne({ where: { id } });
-    if (!resume) {
-      throw new NotFoundException('Resume not found');
-    }
-    const { error } = await supabase.storage
-      .from('resumes')
-      .remove([resume.filePath]);
-    if (error) throw new Error('Resume storage deletion failed');
-
-    await this.resumeRepository.delete(id);
-
-    const personalInfo = await this.getMyPortfolioInfo();
-    if (personalInfo && personalInfo.resumeUrl === resume.url) {
-      await this.repository.repo.update(
-        { id: personalInfo.id, resumeUrl: resume.url },
-        { resumeUrl: null },
-      );
-    }
-
-    return { message: 'Resume deleted successfully' };
+    return this.resumeRepository.manager.transaction(async manager=>{
+      await manager.query('SELECT pg_advisory_xact_lock(78413301)');
+      const repository=manager.getRepository(Resume),resume=await repository.findOneBy({id});
+      if(!resume)throw new NotFoundException('Resume not found');
+      const tables=await manager.query<Array<{name:string|null}>>("SELECT to_regclass('public.portfolio_studio') AS name");
+      if(tables[0]?.name){
+        const used=await manager.query<Array<{used:boolean}>>("SELECT EXISTS(SELECT 1 FROM portfolio_studio s WHERE jsonb_path_exists(to_jsonb(s), '$.** ? (@ == $target)', jsonb_build_object('target',$1::text))) OR EXISTS(SELECT 1 FROM portfolio_studio_recovery r WHERE jsonb_path_exists(r.draft, '$.** ? (@ == $target)', jsonb_build_object('target',$1::text))) AS used",[resume.url]);
+        if(used[0]?.used)throw new BadRequestException('This resume is referenced by a draft, publication, retained version, snapshot or recovery copy. Keep it available for that content.');
+      }
+      const {error}=await this.storageClient().storage.from('resumes').remove([resume.filePath]);
+      if(error)throw new Error('Resume storage deletion failed');
+      await repository.delete(id);
+      const profile=await manager.getRepository(PersonalInfo).findOne({where:{resumeUrl:resume.url}});
+      if(profile)await manager.getRepository(PersonalInfo).update({id:profile.id,resumeUrl:resume.url},{resumeUrl:null});
+      return {message:'Unused resume deleted'};
+    });
   }
 
   private validateResume(file: Express.Multer.File) {

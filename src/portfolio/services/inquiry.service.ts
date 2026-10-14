@@ -208,8 +208,9 @@ export class InquiryService implements OnModuleInit, OnModuleDestroy {
     version: number,
     status: Inquiry['status'],
     actorId?: number,
+    details?:{internalNotes?:string;replied?:boolean},
   ) {
-    return this.mutate(id, version, status, actorId);
+    return this.mutate(id, version, status, actorId, details);
   }
   async remove(id: string, version: number, actorId?: number) {
     await this.mutate(id, version, null, actorId);
@@ -219,6 +220,7 @@ export class InquiryService implements OnModuleInit, OnModuleDestroy {
     version: number,
     status: Inquiry['status'] | null,
     actorId?: number,
+    details?:{internalNotes?:string;replied?:boolean},
   ) {
     requireAuditActor(actorId);
     return this.storage(() =>
@@ -246,7 +248,7 @@ export class InquiryService implements OnModuleInit, OnModuleDestroy {
           );
           return null;
         }
-        if (status === 'confirmed') {
+        if (status === 'confirmed' && item.status !== 'confirmed') {
           if (!item.slot || Date.parse(item.slot.startsAt) <= now.getTime())
             throw new BadRequestException(
               'Only a future meeting request can be confirmed.',
@@ -268,6 +270,8 @@ export class InquiryService implements OnModuleInit, OnModuleDestroy {
             );
         }
         item.status = status;
+        if(details?.internalNotes!==undefined){if(typeof details.internalNotes!=='string'||details.internalNotes.length>4000)throw new BadRequestException('Internal notes must be at most 4000 characters.');item.internalNotes=details.internalNotes;}
+        if(details?.replied!==undefined)item.repliedAt=details.replied?now:null;
         item.version++;
         await recordAdminAction(
           manager,

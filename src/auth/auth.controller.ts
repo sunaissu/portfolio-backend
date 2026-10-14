@@ -1,4 +1,5 @@
-import { Controller, Get, Post, UseGuards, Req, Res } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, Req, Res } from '@nestjs/common';
+import {Equals,IsString,MaxLength,MinLength} from 'class-validator';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { GoogleOAuthGuard } from './guards/google.guard';
@@ -8,12 +9,20 @@ import { Public } from './decorators/public.decorator';
 import type { RequestWithUser } from './interfaces/request-with-user.interface';
 import { CSRF_COOKIE_NAME, RequireCsrf } from './csrf';
 
+class SessionConfirmDto {@Equals(true) confirmed:boolean;}
+class SessionLabelDto extends SessionConfirmDto {@IsString() @MinLength(1) @MaxLength(80) label:string;}
+
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
   ) {}
+
+  @Get('sessions') sessions(@Req() req:RequestWithUser){return this.authService.sessions(req.user.id,req.user.sessionId);}
+  @Delete('sessions') revokeOthers(@Req() req:RequestWithUser,@Body() _body:SessionConfirmDto){return this.authService.revokeOtherSessions(req.user.id,req.user.sessionId);}
+  @Delete('sessions/:id') revoke(@Req() req:RequestWithUser,@Param('id') id:string,@Body() _body:SessionConfirmDto){return this.authService.manageSession(req.user.id,id);}
+  @Patch('sessions/:id') rename(@Req() req:RequestWithUser,@Param('id') id:string,@Body() body:SessionLabelDto){return this.authService.manageSession(req.user.id,id,body.label);}
 
   @Public()
   @Get('google')

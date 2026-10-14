@@ -100,6 +100,16 @@ export class PortfolioDataService {
     return this.cloneEnvelope(await this.databaseReadInFlight);
   }
 
+  private async readManagedPublication(): Promise<PortfolioDataEnvelope|null> {
+    try {
+      const rows=await this.dataSource.query<Array<{published:unknown;published_at:string}>>('SELECT published, published_at FROM portfolio_studio WHERE id=1 AND published IS NOT NULL');
+      if(!rows?.length)return null;
+      const data=this.publicProjection(rows[0].published);
+      const envelope:PortfolioDataEnvelope={schemaVersion:SCHEMA_VERSION,generatedAt:new Date(rows[0].published_at).toISOString(),source:'database',isStale:false,sectionSources:{profile:'database',projects:'database',skills:'database',experience:'database',education:'database',todo:'database',content:'database'},data};
+      this.assertEnvelopeSize(envelope);return envelope;
+    }catch(error){if((error as {code?:string;driverError?:{code?:string}})?.code==='42P01'||(error as {driverError?:{code?:string}})?.driverError?.code==='42P01')return null;throw error;}
+  }
+
   getHealth(): PortfolioHealth {
     const now = Date.now();
     return {
@@ -118,6 +128,8 @@ export class PortfolioDataService {
   private async readDatabaseOrFallback(): Promise<PortfolioDataEnvelope> {
     const startedAt = Date.now();
     try {
+      const managed=await this.readManagedPublication();
+      if(managed){this.lastKnownGood={envelope:managed,cachedAt:Date.now(),usableUntil:Date.now()+CACHE_MAX_AGE_MS};this.consecutiveFailures=0;this.circuitOpenUntil=0;this.lastDatabaseFailure=null;this.lastValidationError=null;return managed;}
       const live = await this.retryTransient(() =>
         this.withTimeout(() =>
           Promise.all([
@@ -378,12 +390,26 @@ export class PortfolioDataService {
     return envelope;
   }
 
-  private parsePortfolioData(value: unknown, path: string): PortfolioData {
+  normalizeDraft(value: unknown): PortfolioData {
+    const data=this.parsePortfolioData(value, 'draft', true);
+    const unique=(items:Array<{id:number}>,name:string)=>{if(new Set(items.map(item=>item.id)).size!==items.length)throw new Error('Duplicate IDs in '+name);};
+    unique(data.projects,'projects');unique(data.skills,'skills');unique(data.experience,'experience');for(const project of data.projects){unique(project.links,'project links');unique(project.technologies,'project technologies');}for(const skill of data.skills)unique(skill.items,'skill items');for(const company of data.experience){unique(company.roles,'roles');for(const role of company.roles)unique(role.responsibilities,'responsibilities');}
+    if(Buffer.byteLength(JSON.stringify(data), 'utf8')>250000)throw new Error('Draft exceeds 250,000 bytes.');
+    return data;
+  }
+
+  publicProjection(value: unknown): PortfolioData {
+    const data=this.parsePortfolioData(value, 'publication');
+    data.content=projectContent(data.content!,data.projects.map(p=>p.id),data.experience.flatMap(e=>e.roles.map(r=>r.id)));
+    return data;
+  }
+
+  private parsePortfolioData(value: unknown, path: string, retainDrafts=false): PortfolioData {
     const data = this.record(value, path);
     return {
       content: normalizeContent(data.content),
       profile: this.parseProfile(data.profile, `${path}.profile`),
-      projects: this.parseProjects(data.projects, `${path}.projects`),
+      projects: this.parseProjects(data.projects, `${path}.projects`, retainDrafts),
       skills: this.parseSkills(data.skills, `${path}.skills`),
       experience: this.parseExperience(data.experience, `${path}.experience`),
       education: this.array(
@@ -452,7 +478,7 @@ export class PortfolioDataService {
     };
   }
 
-  private parseProjects(value: unknown, path: string): PublicProject[] {
+  private parseProjects(value: unknown, path: string, retainDrafts=false): PublicProject[] {
     const projects = this.array(value, path, MAX_PROJECTS).map((raw, index) => {
       const itemPath = `${path}[${index}]`;
       const item = this.record(raw, itemPath);
@@ -475,6 +501,7 @@ export class PortfolioDataService {
         isFeatured: this.boolean(item.isFeatured, `${itemPath}.isFeatured`),
       };
     });
+    if(retainDrafts)return projects;
     const published = projects.filter(project => !project.isDraft), ids = new Set(published.map(project => project.id));
     return published.map(project => ({ ...project, caseStudy: project.caseStudy ? { ...project.caseStudy, dependencies: project.caseStudy.dependencies.filter(id => id !== project.id && ids.has(id)) } : null }));
   }

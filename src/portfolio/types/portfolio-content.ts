@@ -1,4 +1,5 @@
 export interface PortfolioContent {
+  notices: Array<{id:string;message:string;startsOn:string;endsOn:string;severity:'info'|'warning'}>;
   articles: Array<{
     id: string;
     title: string;
@@ -52,6 +53,7 @@ export interface PortfolioContent {
   }>;
 }
 export const emptyContent = (): PortfolioContent => ({
+  notices: [],
   articles: [],
   faq: [],
   testimonials: [],
@@ -167,6 +169,7 @@ export function normalizeContent(value: unknown): PortfolioContent {
     }
   };
   const input = record(value, [
+    'notices',
     'articles',
     'faq',
     'testimonials',
@@ -299,6 +302,7 @@ export function normalizeContent(value: unknown): PortfolioContent {
       }),
       (item) => item.id,
     ),
+    notices: unique(list(input.notices,5).map(value=>{const item=record(value,['id','message','startsOn','endsOn','severity']);const startsOn=date(item.startsOn),endsOn=date(item.endsOn);if(endsOn<startsOn||!['info','warning'].includes(String(item.severity)))throw new Error('Use a valid notice interval and severity.');return {id:slug(item.id),message:text(item.message,500),startsOn,endsOn,severity:item.severity as 'info'|'warning'};}),item=>item.id),
     availability,
     locales: unique(
       list(input.locales, 8).map((value) => {

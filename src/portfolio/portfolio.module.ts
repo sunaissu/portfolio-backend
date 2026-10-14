@@ -1,3 +1,5 @@
+import {StudioService} from './services/studio.service';
+import {StudioController} from './controllers/studio.controller';
 import { Inquiry } from './models/inquiry.model';
 import { InquiryService } from './services/inquiry.service';
 import { InquiryRateGuard } from './services/inquiry-rate.guard';
@@ -80,6 +82,7 @@ import { AdminPortfolioController } from './controllers/admin-portfolio.controll
     ]),
   ],
   controllers: [
+    StudioController,
     EducationController,
     PublicationController,
     InquiryController,
@@ -98,6 +101,7 @@ import { AdminPortfolioController } from './controllers/admin-portfolio.controll
     AdminPortfolioController,
   ],
   providers: [
+    StudioService,
     EducationService,
     PublicationService,
     InquiryService,

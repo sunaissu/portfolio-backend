@@ -76,3 +76,19 @@ The default Anthropic model is claude-sonnet-5-5. The previous claude-3-5-sonnet
 The migration check creates disposable PostgreSQL through PGlite, including browser roles with permissive defaults, then verifies that the migrations remove their table access. Unit tests cover authentication, revision conflicts, publication validation, receipt privacy/idempotency, meeting collisions, rate/origin checks, and streamed response bounds. Browser tests live in ../portfolio and use fixture APIs.
 
 The dashboard policy currently limits its changes to source review. No dashboard build, browser check, real OAuth sign-in, real SMTP delivery, production database migration, or paid provider call is claimed by these checks.
+
+## Atomic management studio
+
+Apply migrations/20261014_management_studio.sql after the authentication, audit and inquiry migrations. This change has been exercised against a disposable PostgreSQL-compatible PGlite database; no production migration was run. Studio tables and recovery documents are server-only with RLS and no anonymous/authenticated grants.
+
+Authenticated /api/v1/admin/studio endpoints manage a versioned draft containing every portfolio section. Save does not publish. Explicit revision-bound approval precedes publication; public API, inquiry availability and meeting validation read only that approved release. Changes use a transaction and advisory lock. Public projection excludes draft projects and private management metadata.
+
+History retains 20 drafts within 4 MiB; trash retains 100 records within 150 KB. Recovery copies are private per administrator and expire after seven days. Snapshots are explicit approved-public recovery copies in the database, not deployment filesystem writes. Review comments, settings, translation digests and audit records remain private. Imported records receive field/record errors before saving. Private management and authentication responses prohibit caching.
+
+Session endpoints list only the current administrator's newest 100 active sessions, support browser labels, selected revocation, and revocation of all other owned sessions. Labels are not hardware identities. Inquiry notes and reply timestamps are private; visitor receipts use an explicit field projection.
+
+Manual link review checks six URLs per batch, up to 120. It accepts public HTTPS on port 443, rejects private/reserved addresses, pins the validated DNS address, sends HEAD only, follows no redirects, and limits time/concurrency. A HEAD rejection is not proof that a page is unavailable.
+
+Optional public notices have bounded plain text and inclusive UTC date windows. They become eligible to display only after the document is approved and published. Resume assets are publicly reachable immediately after upload; 20 files may be retained. Automatic pruning is disabled, and deletion is serialized with release/recovery writes and rejected for referenced files. Storage deletion itself still depends on the configured provider.
+
+Checks: npm run build, npm test -- --runInBand, npm run test:migrations, npm run test:studio. Dashboard execution is separately prohibited by that repository's AGENTS.md.

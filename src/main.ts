@@ -40,6 +40,7 @@ async function bootstrap() {
     maxAge: 600,
   });
 
+  app.use('/api/v1/admin/studio', json({ limit: '300kb' }));
   app.use(json({ limit: '64kb' }));
   app.use(urlencoded({ extended: false, limit: '32kb', parameterLimit: 100 }));
   app.use(cookieParser());

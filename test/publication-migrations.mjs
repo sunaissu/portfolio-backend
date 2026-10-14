@@ -12,7 +12,7 @@ try {
     CREATE TABLE project(id integer PRIMARY KEY, "isDraft" boolean NOT NULL DEFAULT false);
     INSERT INTO admin_user VALUES (1);
     INSERT INTO ai_config VALUES (1, 'fixture-credential-never-exported');`);
-  const migrations = ['20260929_create_portfolio_education.sql', '20261009_create_auth_sessions.sql', '20261013_project_case_studies.sql', '20261013_portfolio_admin_events.sql', '20261013_portfolio_publication.sql', '20261013_portfolio_inquiries.sql', '20261013_backend_table_permissions.sql'];
+  const migrations = ['20260929_create_portfolio_education.sql', '20261009_create_auth_sessions.sql', '20261013_project_case_studies.sql', '20261013_portfolio_admin_events.sql', '20261013_portfolio_publication.sql', '20261013_portfolio_inquiries.sql', '20261013_backend_table_permissions.sql', '20261014_management_studio.sql'];
   for (const migration of migrations) await db.exec(await readFile(new URL(`../migrations/${migration}`, import.meta.url), 'utf8'));
   // Reapplying the additive migration set must not destroy saved rows.
   for (const migration of migrations) await db.exec(await readFile(new URL(`../migrations/${migration}`, import.meta.url), 'utf8'));
@@ -24,7 +24,7 @@ try {
   await db.query('INSERT INTO portfolio_admin_event(id, actor_id, action, entity_id, version) VALUES ($1,1,$2,$3,1)', [randomUUID(), 'publication.save', 'publication']);
   for (const role of ['anon', 'authenticated']) {
     await db.exec(`SET ROLE ${role}`);
-    for (const table of ['ai_config', 'project', 'portfolio_education', 'portfolio_auth_session', 'portfolio_publication', 'portfolio_inquiry', 'portfolio_admin_event']) {
+    for (const table of ['ai_config', 'project', 'portfolio_education', 'portfolio_auth_session', 'portfolio_publication', 'portfolio_inquiry', 'portfolio_admin_event', 'portfolio_studio', 'portfolio_studio_recovery']) {
       await assert.rejects(db.query(`SELECT * FROM ${table}`), /permission denied/);
       await assert.rejects(db.query(`DELETE FROM ${table}`), /permission denied/);
     }
