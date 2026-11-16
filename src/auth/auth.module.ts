@@ -8,6 +8,8 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { AuthService } from './auth.service';
+import { AdminUserService } from '../portfolio/services/admin-user.service';
+import { AdminUserProviderService } from '../portfolio/services/admin-user-provider.service';
 
 @Module({
   imports: [
@@ -26,7 +28,15 @@ import { AuthService } from './auth.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [GoogleStrategy, JwtStrategy, JwtRefreshStrategy, AuthService],
+  providers: [
+    {
+      provide: GoogleStrategy,
+      useFactory: (config: ConfigService, users: AdminUserService, providers: AdminUserProviderService) =>
+        config.get<string>('auth.mode') === 'disabled' ? null : new GoogleStrategy(config, users, providers),
+      inject: [ConfigService, AdminUserService, AdminUserProviderService],
+    },
+    JwtStrategy, JwtRefreshStrategy, AuthService,
+  ],
   exports: [PassportModule, JwtModule],
 })
 export class AuthModule {}

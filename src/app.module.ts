@@ -26,6 +26,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
         url: configService.get<string>('database.url'),
         autoLoadEntities: true,
         synchronize: false,
+        installExtensions: false,
         manualInitialization: true,
         retryAttempts: 1,
         extra: {

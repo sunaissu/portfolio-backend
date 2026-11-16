@@ -74,6 +74,10 @@ function origins(value: string | undefined, clientUrl: string | undefined) {
 }
 
 export default () => {
+  const authMode = process.env.AUTH_MODE?.trim() || 'google';
+  if (!['google', 'disabled'].includes(authMode)) {
+    throw new Error('AUTH_MODE must be google or disabled');
+  }
   const provider = aiProvider(process.env.AI_PROVIDER);
   const configSource = process.env.AI_CONFIG_SOURCE?.trim() || 'database-first';
   if (!['database-first', 'environment'].includes(configSource)) {
@@ -88,8 +92,9 @@ export default () => {
       throw new Error('Production requires distinct JWT secrets of at least 32 bytes');
     }
     const allowed = origins(process.env.ALLOWED_ORIGINS, clientUrl);
-    if (!clientUrl || !allowed.length || allowed.some((origin) => !origin.startsWith('https://')) ||
-        !allowed.includes(new URL(clientUrl).origin)) {
+    if (allowed.some((origin) => !origin.startsWith('https://')) ||
+        (authMode === 'google' && (!clientUrl || !allowed.length ||
+          !allowed.includes(new URL(clientUrl).origin)))) {
       throw new Error('Production requires an HTTPS client URL in ALLOWED_ORIGINS');
     }
   }
@@ -98,6 +103,7 @@ export default () => {
     port: port(process.env.PORT),
     clientUrl,
     allowedOrigins: origins(process.env.ALLOWED_ORIGINS, clientUrl),
+    auth: { mode: authMode },
     database: {
       url: process.env.DATABASE_URL,
     },
@@ -111,8 +117,9 @@ export default () => {
       callbackUrl: process.env.GOOGLE_CALLBACK_URL,
     },
     storage: {
-      url: process.env.SUPABASE_URL,
-      key: process.env.SUPABASE_KEY,
+      provider: process.env.STORAGE_PROVIDER?.trim() || 'local',
+      root: process.env.FILE_STORAGE_ROOT || '/app/data/uploads',
+      publicBaseUrl: process.env.PUBLIC_API_URL?.trim(),
     },
     ai: {
       provider,

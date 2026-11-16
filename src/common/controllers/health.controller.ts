@@ -1,4 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Public } from '../../auth/decorators/public.decorator';
 import { PortfolioDataService } from '../../portfolio/services/portfolio-data.service';
 import { DatabaseConnectionService } from '../services/database-connection.service';
@@ -8,6 +9,7 @@ export class HealthController {
   constructor(
     private readonly portfolioDataService: PortfolioDataService,
     private readonly databaseConnectionService: DatabaseConnectionService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Public()
@@ -27,6 +29,9 @@ export class HealthController {
           ? ('ready' as const)
           : ('degraded' as const),
       database,
+      administration: {
+        enabled: this.configService.get<string>('auth.mode') !== 'disabled',
+      },
       portfolio,
     };
   }

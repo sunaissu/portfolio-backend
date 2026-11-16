@@ -5,6 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
@@ -12,7 +13,7 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 export class JwtAuthGuard extends AuthGuard('jwt') {
   private readonly logger = new Logger(JwtAuthGuard.name);
 
-  constructor(private reflector: Reflector) {
+  constructor(private reflector: Reflector, private config: ConfigService) {
     super();
   }
 
@@ -23,6 +24,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     ]);
     if (isPublic) {
       return true;
+    }
+    if (this.config.get<string>('auth.mode') === 'disabled') {
+      throw new UnauthorizedException('Administrator sign-in has not been configured.');
     }
     return super.canActivate(context);
   }

@@ -1,4 +1,4 @@
-import { ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext, Injectable, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
@@ -10,6 +10,9 @@ export class GoogleOAuthGuard extends AuthGuard('google') {
   constructor(private readonly config: ConfigService, private readonly jwt: JwtService) { super(); }
 
   getAuthenticateOptions(context: ExecutionContext) {
+    if (this.config.get<string>('auth.mode') === 'disabled') {
+      throw new ServiceUnavailableException('Administrator sign-in has not been configured.');
+    }
     const request = context.switchToHttp().getRequest<Request>();
     const response = context.switchToHttp().getResponse<Response>();
     const secure = this.config.get<string>('environment') === 'production';

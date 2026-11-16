@@ -6,7 +6,13 @@ NestJS and PostgreSQL service for the public portfolio, authenticated dashboard,
 
 Install with npm install and compile with npm run build. Development uses npm run start:dev; production uses npm run start:prod. Port 4000 is the default. Configure the database, Google sign-in, cookie origins, storage, and optional AI provider privately. No credentials belong in the frontend or snapshots.
 
-Before deploying the matching frontend/dashboard release, apply these SQL migrations to the intended database in order:
+For a new, empty PostgreSQL database, supply `DATABASE_URL` privately and run `node scripts/bootstrap-database.mjs`. The connection must use the dedicated database owner without superuser, create-database, create-role or BYPASSRLS privileges. `EXPECTED_DATABASE` defaults to `portfolio`. The script creates the baseline and applies the eight migrations below in one transaction. It rejects an untracked nonempty database, verifies migration checksums on repeat runs, and does not seed portfolio content. Optional `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_NAME` add an administrator allowlist entry without replacing an existing account.
+
+The Dockerfile builds on Node 24, verifies local PDF storage on Linux and runs the production image as user `node` (UID 1000). Mount persistent storage at `/app/data/uploads`, writable by that user. `STORAGE_PROVIDER=local` and `FILE_STORAGE_ROOT=/app/data/uploads` are the defaults. Set `PUBLIC_API_URL` to the public HTTPS API origin before uploading resumes. Files are limited to 5 MB, and the library retains at most 20 PDFs. Downloads use `/api/v1/assets/resumes/:filename`. The Supabase storage SDK is no longer used; existing remote files are not copied automatically.
+
+For initial infrastructure setup, `AUTH_MODE=disabled` allows the API to start before Google OAuth is configured. Private routes reject access and Google sign-in returns 503. Production JWT secrets are still required. Switch to `AUTH_MODE=google` (the default) after configuring the Google client, callback URL, dashboard URL and allowed origins.
+
+For an existing legacy database, apply these SQL migrations to the intended database in order before deploying the matching frontend/dashboard release. Do not rerun them separately after the fresh bootstrap:
 
 1. migrations/20260929_create_portfolio_education.sql
 2. migrations/20261009_create_auth_sessions.sql
@@ -19,7 +25,7 @@ Before deploying the matching frontend/dashboard release, apply these SQL migrat
 
 These are additive migrations for an existing portfolio database. They do not create all legacy application tables. The backend connection must use the table owner or a dedicated server role with the required privileges and BYPASSRLS. Browser database roles anon/authenticated have no direct access to application tables, including ai_config. The public portfolio reads through the backend instead. Review other database roles and inherited privileges in the intended deployment. These migrations were tested in disposable PostgreSQL, not applied to production.
 
-Production requires distinct JWT_SECRET and JWT_REFRESH_SECRET values of at least 32 bytes and an HTTPS CLIENT_URL in ALLOWED_ORIGINS. Add both portfolio and dashboard origins. Cookies require the actual deployment's HTTPS and same-site configuration. Sign-in uses a signed browser-bound Google state and verified Google email. Sessions are stored in PostgreSQL; refresh rotation is conditional and logout revokes the session. Old tokens without session IDs require sign-in again.
+Production requires distinct JWT_SECRET and JWT_REFRESH_SECRET values of at least 32 bytes. Google authentication also requires an HTTPS CLIENT_URL in ALLOWED_ORIGINS. Add both portfolio and dashboard origins. Cookies require the actual deployment's HTTPS and same-site configuration. Sign-in uses a signed browser-bound Google state and verified Google email. Sessions are stored in PostgreSQL; refresh rotation is conditional and logout revokes the session. Old tokens without session IDs require sign-in again.
 
 All admin endpoints require the global authenticated-session guard. Unsafe admin requests also require an allowed Origin and matching CSRF header/cookie. Database failures fail closed for authentication and mutations. Do not expose PostgreSQL or service-role credentials to the browser.
 
@@ -71,6 +77,7 @@ The default Anthropic model is claude-sonnet-5-5. The previous claude-3-5-sonnet
 
 - npm run build
 - npm test -- --runInBand
+- node test/fresh-bootstrap.mjs (after the build)
 - npm run test:migrations
 - npm audit --omit=dev
 

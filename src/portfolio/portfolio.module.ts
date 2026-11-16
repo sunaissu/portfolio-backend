@@ -60,6 +60,8 @@ import { AdminUserProviderService } from './services/admin-user-provider.service
 import { AdminUserProviderRepository } from './repositories/admin-user-provider.repository';
 import { PortfolioDataService } from './services/portfolio-data.service';
 import { AdminPortfolioController } from './controllers/admin-portfolio.controller';
+import { LocalResumeStorageService } from './services/local-resume-storage.service';
+import { ResumeAssetsController } from './controllers/resume-assets.controller';
 
 @Module({
   imports: [
@@ -82,6 +84,7 @@ import { AdminPortfolioController } from './controllers/admin-portfolio.controll
     ]),
   ],
   controllers: [
+    ResumeAssetsController,
     StudioController,
     EducationController,
     PublicationController,
@@ -101,6 +104,7 @@ import { AdminPortfolioController } from './controllers/admin-portfolio.controll
     AdminPortfolioController,
   ],
   providers: [
+    LocalResumeStorageService,
     StudioService,
     EducationService,
     PublicationService,
