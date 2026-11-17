@@ -10,6 +10,10 @@ For a new, empty PostgreSQL database, supply `DATABASE_URL` privately and run `n
 
 The Dockerfile builds on Node 24, verifies local PDF storage on Linux and runs the production image as user `node` (UID 1000). Mount persistent storage at `/app/data/uploads`, writable by that user. `STORAGE_PROVIDER=local` and `FILE_STORAGE_ROOT=/app/data/uploads` are the defaults. Set `PUBLIC_API_URL` to the public HTTPS API origin before uploading resumes. Files are limited to 5 MB, and the library retains at most 20 PDFs. Downloads use `/api/v1/assets/resumes/:filename`. The Supabase storage SDK is no longer used; existing remote files are not copied automatically.
 
+An empty database opens an unpublished Studio draft with blank profile fields and empty sections. It does not import the fallback snapshot. Save progress privately, complete the profile, then approve and publish the saved revision. Existing legacy content must load successfully before Studio initializes; database errors cannot be treated as an empty installation.
+
+Resume uploads create library entries without changing the published profile. Select a PDF in the draft and publish a reviewed release to change the public link. Downloads require an existing library entry and use `Cache-Control: no-store`. If disk deletion fails after the entry is removed, the API returns `cleanupPending: true` and stops serving that URL; the operator still needs to remove the leftover file. Previously downloaded copies cannot be recalled.
+
 For initial infrastructure setup, `AUTH_MODE=disabled` allows the API to start before Google OAuth is configured. Private routes reject access and Google sign-in returns 503. Production JWT secrets are still required. Switch to `AUTH_MODE=google` (the default) after configuring the Google client, callback URL, dashboard URL and allowed origins.
 
 For an existing legacy database, apply these SQL migrations to the intended database in order before deploying the matching frontend/dashboard release. Do not rerun them separately after the fresh bootstrap:
@@ -78,6 +82,7 @@ The default Anthropic model is claude-sonnet-5-5. The previous claude-3-5-sonnet
 - npm run build
 - npm test -- --runInBand
 - node test/fresh-bootstrap.mjs (after the build)
+- npm run test:fresh-studio (after the build)
 - npm run test:migrations
 - npm audit --omit=dev
 

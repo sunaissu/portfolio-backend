@@ -78,22 +78,55 @@ export class StudioService {
       );
     }
   }
-  private async seed(actor: number): Promise<Studio> {
+  private async seed(actor: number, manager = this.db.manager): Promise<Studio> {
     const live = await this.portfolio.getPortfolio();
-    if (live.isStale)
-      throw new ServiceUnavailableException(
-        'A fresh portfolio read is required before creating the management draft.',
+    let data: PortfolioData;
+    if (live.isStale) {
+      const [existing] = await manager.query<Array<{ occupied: boolean }>>(
+        `SELECT EXISTS(SELECT 1 FROM personal_info)
+          OR EXISTS(SELECT 1 FROM project)
+          OR EXISTS(SELECT 1 FROM skill)
+          OR EXISTS(SELECT 1 FROM experience)
+          OR EXISTS(SELECT 1 FROM portfolio_education)
+          OR EXISTS(SELECT 1 FROM portfolio_publication)
+          OR EXISTS(SELECT 1 FROM portfolio_studio_recovery WHERE base_version <> 0) AS occupied`,
       );
-    const data = this.normalize({
-      ...live.data,
-      projects: await this.projects.getAll(),
-    });
+      if (!existing || existing.occupied)
+        throw new ServiceUnavailableException(
+          'A fresh portfolio read is required before creating the management draft.',
+        );
+      // Empty fields belong only to the private draft. Never seed from fallback data.
+      data = this.normalize({
+        profile: {
+          id: 1,
+          name: '',
+          location: '',
+          linkedin: '',
+          portfolio: '',
+          summary: '',
+          title: '',
+          email: '',
+          resumeUrl: null,
+        },
+        projects: [],
+        skills: [],
+        experience: [],
+        education: [],
+        todo: [],
+      });
+    } else {
+      data = this.normalize({
+        ...live.data,
+        projects: await this.projects.getAll(),
+      });
+    }
+    const createdAt = live.isStale ? new Date().toISOString() : live.generatedAt;
     return {
       id: 1,
       version: 0,
       draft: data,
-      published: clone(live.data),
-      published_at: live.generatedAt,
+      published: live.isStale ? null : clone(live.data),
+      published_at: live.isStale ? null : live.generatedAt,
       history: [],
       trash: [],
       comments: [],
@@ -101,7 +134,7 @@ export class StudioService {
       review_version: null,
       reviewed_by: null,
       snapshot: null,
-      updated_at: live.generatedAt,
+      updated_at: createdAt,
       updated_by: actor,
     };
   }
@@ -200,7 +233,7 @@ export class StudioService {
     return this.storage(() =>
       this.db.transaction(async (manager) => {
         await manager.query('SELECT pg_advisory_xact_lock(78413301)');
-        const state = (await this.read(manager)) || (await this.seed(actor));
+        const state = (await this.read(manager)) || (await this.seed(actor, manager));
         if (state.version !== expected)
           throw new ConflictException(
             'The management draft changed. Load the current version and resolve each changed field.',
@@ -388,8 +421,15 @@ export class StudioService {
     );
   }
   private ready(data: PortfolioData) {
-    const publicData = this.portfolio.publicProjection(data),
-      projects = new Set(publicData.projects.map((p) => p.id)),
+    let publicData: PortfolioData;
+    try {
+      publicData = this.portfolio.publicProjection(data);
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'Complete the profile before review.',
+      );
+    }
+    const projects = new Set(publicData.projects.map((p) => p.id)),
       roles = new Set(
         publicData.experience.flatMap((e) => e.roles.map((r) => r.id)),
       ),

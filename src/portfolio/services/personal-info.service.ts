@@ -47,10 +47,6 @@ export class PersonalInfoService {
 
   async uploadResume(file: Express.Multer.File) {
     this.validateResume(file);
-    const personalInfo = await this.getMyPortfolioInfo();
-    if (!personalInfo) {
-      throw new NotFoundException('Personal profile not found');
-    }
     const uploaded = await this.storage.save(file.buffer);
 
     try {
@@ -65,12 +61,6 @@ export class PersonalInfoService {
           filePath: uploaded.filePath,
           url: uploaded.url,
         });
-        const updated = await manager
-          .getRepository(PersonalInfo)
-          .update(personalInfo.id, { resumeUrl: uploaded.url });
-        if (updated.affected !== 1) {
-          throw new NotFoundException('Personal profile not found');
-        }
       });
     } catch (error) {
       await this.storage.remove(uploaded.filePath).catch(() => {

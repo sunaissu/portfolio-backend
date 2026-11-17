@@ -408,7 +408,7 @@ export class PortfolioDataService {
     const data = this.record(value, path);
     return {
       content: normalizeContent(data.content),
-      profile: this.parseProfile(data.profile, `${path}.profile`),
+      profile: this.parseProfile(data.profile, `${path}.profile`, retainDrafts),
       projects: this.parseProjects(data.projects, `${path}.projects`, retainDrafts),
       skills: this.parseSkills(data.skills, `${path}.skills`),
       experience: this.parseExperience(data.experience, `${path}.experience`),
@@ -459,20 +459,35 @@ export class PortfolioDataService {
     };
   }
 
-  private parseProfile(value: unknown, path: string): PublicPersonalInfo {
+  private parseProfile(
+    value: unknown,
+    path: string,
+    draft = false,
+  ): PublicPersonalInfo {
     const item = this.record(value, path);
-    const email = this.text(item.email, `${path}.email`, 320);
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const text = (value: unknown, field: string, max: number) => {
+      if (draft && typeof value === 'string' && value.length <= max && !value.trim())
+        return '';
+      return this.text(value, `${path}.${field}`, max);
+    };
+    const url = (value: unknown, field: string) => {
+      const normalized = text(value, field, 2048);
+      return draft && normalized === ''
+        ? ''
+        : this.webUrl(normalized, `${path}.${field}`);
+    };
+    const email = text(item.email, 'email', 320);
+    if (!(draft && email === '') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       throw new PortfolioPayloadError(`${path}.email is invalid`);
     }
     return {
       id: this.id(item.id, `${path}.id`),
-      name: this.text(item.name, `${path}.name`, 200),
-      location: this.text(item.location, `${path}.location`, 200),
-      linkedin: this.webUrl(item.linkedin, `${path}.linkedin`),
-      portfolio: this.webUrl(item.portfolio, `${path}.portfolio`),
-      summary: this.text(item.summary, `${path}.summary`, 10000),
-      title: this.text(item.title, `${path}.title`, 200),
+      name: text(item.name, 'name', 200),
+      location: text(item.location, 'location', 200),
+      linkedin: url(item.linkedin, 'linkedin'),
+      portfolio: url(item.portfolio, 'portfolio'),
+      summary: text(item.summary, 'summary', 10000),
+      title: text(item.title, 'title', 200),
       email,
       resumeUrl: this.optionalUrl(item.resumeUrl, `${path}.resumeUrl`, true),
     };
