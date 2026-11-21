@@ -11,6 +11,11 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   app.getHttpAdapter().getInstance().disable('x-powered-by');
+  const trustedProxyIps = configService.getOrThrow<string[]>('trustedProxyIps');
+  app.getHttpAdapter().getInstance().set(
+    'trust proxy',
+    trustedProxyIps.length ? trustedProxyIps : false,
+  );
   app.enableShutdownHooks();
   app.use((_request: Request, response: Response, next: NextFunction) => {
     response.setHeader('Cache-Control', 'no-store');

@@ -11,6 +11,7 @@ declare namespace NodeJS {
     GOOGLE_CALLBACK_URL: string;
     CLIENT_URL: string;
     ALLOWED_ORIGINS?: string;
+    TRUSTED_PROXY_IPS?: string;
     STORAGE_PROVIDER?: 'local';
     FILE_STORAGE_ROOT?: string;
     PUBLIC_API_URL?: string;

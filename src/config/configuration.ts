@@ -1,3 +1,5 @@
+import { isIP } from 'node:net';
+
 const SUPPORTED_AI_PROVIDERS = [
   'gemini',
   'anthropic',
@@ -44,6 +46,15 @@ function port(value: string | undefined): number {
     throw new Error('PORT must be an integer between 1 and 65535');
   }
   return parsed;
+}
+
+export function parseTrustedProxyIps(value: string | undefined): string[] {
+  if (!value?.trim()) return [];
+  const addresses = value.split(',').map((address) => address.trim());
+  if (addresses.some((address) => isIP(address) === 0)) {
+    throw new Error('TRUSTED_PROXY_IPS must contain only comma-separated IP addresses');
+  }
+  return [...new Set(addresses)];
 }
 
 function origins(value: string | undefined, clientUrl: string | undefined) {
@@ -101,6 +112,7 @@ export default () => {
   return {
     environment: process.env.NODE_ENV || 'development',
     port: port(process.env.PORT),
+    trustedProxyIps: parseTrustedProxyIps(process.env.TRUSTED_PROXY_IPS),
     clientUrl,
     allowedOrigins: origins(process.env.ALLOWED_ORIGINS, clientUrl),
     auth: { mode: authMode },
